@@ -12,7 +12,7 @@ CREATE TABLE movie_categories (
     UNIQUE (movie_id, category_id)
 );
 
-CREATE TABLE cast (
+CREATE TABLE cast_movie (
     id             UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
     movie_id       UUID         NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
     actor_id       UUID         NOT NULL REFERENCES actor(id),

@@ -10,5 +10,9 @@ import java.util.UUID;
 @Repository
 public interface ActorRepository extends JpaRepository<Actor, UUID> {
 
+    Boolean existsByNameIgnoreCase(String name);
+
+    Boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
+
     List<Actor> findByNameContainingIgnoreCase(String name);
 }
