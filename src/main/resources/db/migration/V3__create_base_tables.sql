@@ -10,11 +10,11 @@ CREATE TABLE category (
 
 CREATE TABLE actor (
     id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name       VARCHAR(255) NOT NULL,
+    name       VARCHAR(75) NOT NULL,
     url_image  VARCHAR(500)
 );
 
 CREATE TABLE people (
     id    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name  VARCHAR(255) NOT NULL
+    name  VARCHAR(75) NOT NULL
 );
