@@ -1,8 +1,8 @@
 package com.example.movies.models.movie;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.example.movies.models.classification.Classification;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,11 +21,6 @@ public class Movie {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "classification_id", nullable = false)
-    @JsonIgnore
-    private Classification classification;
-
     @Column(name = "title", nullable = false, length = 255)
     private String title;
 
@@ -43,9 +38,6 @@ public class Movie {
 
     @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
-
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
