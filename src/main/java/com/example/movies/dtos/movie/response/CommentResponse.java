@@ -13,13 +13,15 @@ public class CommentResponse {
     UUID userId;
     String content;
     LocalDateTime createdAt;
+    boolean edited;
 
     public static CommentResponse from(MovieComment comment) {
         return new CommentResponse(
                 comment.getId(),
                 comment.getUserId(),
                 comment.getContent(),
-                comment.getCreatedAt()
+                comment.getCreatedAt(),
+                comment.getUpdatedAt() != null
         );
     }
 }

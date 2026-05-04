@@ -39,6 +39,12 @@ public class Movie {
     @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
 
+    @Column(name = "allow_comments", nullable = false)
+    private boolean allowComments = true;
+
+    @Column(name = "allow_ratings", nullable = false)
+    private boolean allowRatings = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
