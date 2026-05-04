@@ -1,6 +1,7 @@
 package com.example.movies.services.movie;
 
-import com.example.movies.dtos.movie.*;
+import com.example.movies.dtos.movie.request.*;
+import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.actor.Actor;
@@ -25,7 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
