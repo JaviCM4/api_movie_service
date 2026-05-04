@@ -25,11 +25,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,22 +46,20 @@ public class MovieServiceImplTest {
     private static final UUID PEOPLE_ID      = UUID.randomUUID();
     private static final UUID SAVED_MOVIE_ID = UUID.randomUUID();
 
-    @Mock private MovieRepository            movieRepository;
-    @Mock private ClassificationRepository   classificationRepository;
+    @Mock private MovieRepository movieRepository;
+    @Mock private ClassificationRepository classificationRepository;
     @Mock private MovieCountryInfoRepository movieCountryInfoRepository;
-    @Mock private ActorRepository            actorRepository;
-    @Mock private CategoryRepository         categoryRepository;
-    @Mock private PeopleRepository           peopleRepository;
-    @Mock private CastRepository             castRepository;
-    @Mock private MovieCategoryRepository    movieCategoryRepository;
-    @Mock private PosterRepository           posterRepository;
-    @Mock private MoviePeopleRepository      moviePeopleRepository;
-    @Spy  private ResolverService            resolverService;
+    @Mock private ActorRepository actorRepository;
+    @Mock private CategoryRepository categoryRepository;
+    @Mock private PeopleRepository peopleRepository;
+    @Mock private CastRepository castRepository;
+    @Mock private MovieCategoryRepository movieCategoryRepository;
+    @Mock private PosterRepository posterRepository;
+    @Mock private MoviePeopleRepository moviePeopleRepository;
+    @Spy  private ResolverService resolverService;
 
     @InjectMocks
     private MovieServiceImplementation movieService;
-
-    // ── createMovie ────────────────────────────────────────────────────────
 
     @Test
     void testCreateMovie() throws Exception {
@@ -77,8 +77,7 @@ public class MovieServiceImplTest {
 
         Movie savedMovie = buildSavedMovie();
 
-        when(classificationRepository.findWithCountryByIdIn(anyList()))
-                .thenReturn(List.of(buildClassification(CLASSIF_USA_ID, buildCountry(COUNTRY_ID_USA, "United States"), "PG-13", 13),
+        when(classificationRepository.findWithCountryByIdIn(anyList())).thenReturn(List.of(buildClassification(CLASSIF_USA_ID, buildCountry(COUNTRY_ID_USA, "United States"), "PG-13", 13),
                                     buildClassification(CLASSIF_MX_ID,  buildCountry(COUNTRY_ID_MX,  "Mexico"),        "B",     12)));
         when(actorRepository.findAllById(anyList())).thenReturn(List.of(buildActor(ACTOR_ID, "Leonardo DiCaprio")));
         when(categoryRepository.findAllById(anyList())).thenReturn(List.of(buildCategory(CATEGORY_ID, "Sci-Fi")));
@@ -157,7 +156,7 @@ public class MovieServiceImplTest {
         // Act
         spy.createMovie(request);
 
-        // Assert: gana el primero, el duplicado se descarta
+        // Assert
         assertAll(
                 () -> assertEquals(1, castCaptor.getValue().size()),
                 () -> assertEquals("Dom Cobb", castCaptor.getValue().get(0).getCharacterName())
@@ -218,7 +217,175 @@ public class MovieServiceImplTest {
         verify(movieRepository, never()).save(any());
     }
 
-    // ── Builders ──────────────────────────────────────────────────────────
+    @Test
+    void testUpdateMovie() throws Exception {
+        // Arrange
+        MovieServiceImplementation spy = spy(movieService);
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+
+        Movie existing = new Movie();
+        existing.setId(SAVED_MOVIE_ID);
+        existing.setTitle("Old Title");
+        existing.setSynopsis("Old synopsis");
+        existing.setDuration(90);
+        existing.setOriginalLanguage("Spanish");
+
+        UpdateMovieRequest request = new UpdateMovieRequest(
+                "New Title",
+                "New synopsis",
+                120,
+                "https://www.youtube.com/watch?v=newtrailer",
+                "English",
+                LocalDate.now().plusYears(1)
+        );
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
+        when(movieRepository.save(any(Movie.class))).thenReturn(existing);
+
+        // Act
+        spy.updateMovie(SAVED_MOVIE_ID, request);
+
+        // Assert
+        assertAll(
+                () -> verify(movieRepository).save(movieCaptor.capture()),
+                () -> assertEquals("New Title",    movieCaptor.getValue().getTitle()),
+                () -> assertEquals("New synopsis", movieCaptor.getValue().getSynopsis()),
+                () -> assertEquals(120,            movieCaptor.getValue().getDuration()),
+                () -> assertEquals("English",      movieCaptor.getValue().getOriginalLanguage())
+        );
+    }
+
+    @Test
+    void testUpdateMovieOnlyUpdatesNonNullFields() throws Exception {
+        // Arrange
+        MovieServiceImplementation spy = spy(movieService);
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+
+        Movie existing = new Movie();
+        existing.setId(SAVED_MOVIE_ID);
+        existing.setTitle("Original Title");
+        existing.setSynopsis("Original synopsis");
+        existing.setDuration(90);
+
+        // Solo actualiza el título, el resto queda null
+        UpdateMovieRequest request = new UpdateMovieRequest(
+                "Updated Title", null, null, null, null, null
+        );
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
+        when(movieRepository.save(any(Movie.class))).thenReturn(existing);
+
+        // Act
+        spy.updateMovie(SAVED_MOVIE_ID, request);
+
+        // Assert
+        assertAll(
+                () -> verify(movieRepository).save(movieCaptor.capture()),
+                () -> assertEquals("Updated Title",    movieCaptor.getValue().getTitle()),
+                () -> assertEquals("Original synopsis", movieCaptor.getValue().getSynopsis()),
+                () -> assertEquals(90,                  movieCaptor.getValue().getDuration())
+        );
+    }
+
+    @Test
+    void testUpdateMovieWhenMovieNotFound() {
+        // Arrange
+        UpdateMovieRequest request = new UpdateMovieRequest(
+                "New Title", null, null, null, null, null
+        );
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.empty());
+
+        // Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> movieService.updateMovie(SAVED_MOVIE_ID, request));
+        verify(movieRepository, never()).save(any());
+    }
+
+    @Test
+    void testFindAllMoviesByCountry() {
+        // Arrange
+        Movie movie1 = buildSavedMovie();
+        Movie movie2 = new Movie();
+        movie2.setId(UUID.randomUUID());
+        movie2.setTitle("The Matrix");
+
+        Country usa = buildCountry(COUNTRY_ID_USA, "United States");
+        Classification classif = buildClassification(CLASSIF_USA_ID, usa, "PG-13", 13);
+
+        Actor actor = buildActor(ACTOR_ID, "Leonardo DiCaprio");
+        actor.setUrlImage("https://img.example.com/leo.jpg");
+
+        Cast cast = new Cast();
+        cast.setMovie(movie1);
+        cast.setActor(actor);
+        cast.setCharacterName("Dom Cobb");
+
+        MovieCountryInfo mci = new MovieCountryInfo();
+        mci.setMovie(movie1);
+        mci.setClassification(classif);
+
+        Category category = buildCategory(CATEGORY_ID, "Sci-Fi");
+        MovieCategory mc = new MovieCategory();
+        mc.setMovie(movie1);
+        mc.setCategory(category);
+
+        Poster poster = new Poster();
+        poster.setMovie(movie1);
+        poster.setUrlImage("https://img.example.com/poster.jpg");
+        poster.setMain(true);
+
+        People people = buildPeople(PEOPLE_ID, "Christopher Nolan");
+        MoviePeople mp = new MoviePeople();
+        mp.setMovie(movie1);
+        mp.setPeople(people);
+        mp.setRol(RolMovieEnum.DIRECTOR);
+
+        when(movieRepository.findActiveByCountryId(COUNTRY_ID_USA)).thenReturn(List.of(movie1, movie2));
+        when(castRepository.findWithActorByMovieIdIn(anyList())).thenReturn(List.of(cast));
+        when(movieCountryInfoRepository.findActiveByCountryAndMovieIdIn(anyList(), eq(COUNTRY_ID_USA))).thenReturn(List.of(mci));
+        when(movieCategoryRepository.findWithCategoryByMovieIdIn(anyList())).thenReturn(List.of(mc));
+        when(posterRepository.findByMovie_IdIn(anyList())).thenReturn(List.of(poster));
+        when(moviePeopleRepository.findWithPeopleByMovieIdIn(anyList())).thenReturn(List.of(mp));
+
+        // Act
+        List<MovieDetailResponse> result = movieService.findAllMoviesByCountry(COUNTRY_ID_USA);
+
+        // Assert
+        assertAll(
+                () -> assertEquals(2, result.size()),
+                () -> assertEquals("Inception",  result.get(0).getTitle()),
+                () -> assertEquals("The Matrix", result.get(1).getTitle()),
+                () -> assertEquals(1, result.get(0).getCast().size()),
+                () -> assertEquals("Leonardo DiCaprio", result.get(0).getCast().get(0).getActorName()),
+                () -> assertEquals("Dom Cobb",          result.get(0).getCast().get(0).getCharacterName()),
+                () -> assertEquals(1, result.get(0).getClassifications().size()),
+                () -> assertEquals("PG-13",         result.get(0).getClassifications().get(0).getName()),
+                () -> assertEquals("United States", result.get(0).getClassifications().get(0).getCountry()),
+                () -> assertEquals(1, result.get(0).getCategories().size()),
+                () -> assertEquals("Sci-Fi", result.get(0).getCategories().get(0)),
+                () -> assertEquals(1, result.get(0).getPosters().size()),
+                () -> assertTrue(result.get(0).getPosters().get(0).isMain()),
+                () -> assertEquals(1, result.get(0).getCrew().size()),
+                () -> assertEquals(RolMovieEnum.DIRECTOR, result.get(0).getCrew().get(0).getRole())
+        );
+    }
+
+    @Test
+    void testFindAllMoviesByCountryReturnsEmptyWhenNoMovies() {
+        // Arrange
+        when(movieRepository.findActiveByCountryId(COUNTRY_ID_USA)).thenReturn(List.of());
+
+        // Act
+        List<MovieDetailResponse> result = movieService.findAllMoviesByCountry(COUNTRY_ID_USA);
+
+        // Assert
+        assertAll(
+                () -> assertTrue(result.isEmpty()),
+                () -> verify(castRepository, never()).findWithActorByMovieIdIn(anyList()),
+                () -> verify(movieCountryInfoRepository, never()).findActiveByCountryAndMovieIdIn(anyList(), any())
+        );
+    }
 
     private CreateMovieRequest buildRequest(
             List<UUID> classificationIds,
@@ -243,46 +410,46 @@ public class MovieServiceImplTest {
     }
 
     private Movie buildSavedMovie() {
-        Movie m = new Movie();
-        m.setId(SAVED_MOVIE_ID);
-        m.setTitle("Inception");
-        return m;
+        Movie newMovie = new Movie();
+        newMovie.setId(SAVED_MOVIE_ID);
+        newMovie.setTitle("Inception");
+        return newMovie;
     }
 
     private Country buildCountry(UUID id, String name) {
-        Country c = new Country();
-        c.setId(id);
-        c.setName(name);
-        return c;
+        Country newCountry = new Country();
+        newCountry.setId(id);
+        newCountry.setName(name);
+        return newCountry;
     }
 
     private Classification buildClassification(UUID id, Country country, String name, int ageLimit) {
-        Classification c = new Classification();
-        c.setId(id);
-        c.setCountry(country);
-        c.setName(name);
-        c.setAgeLimit(ageLimit);
-        return c;
+        Classification newClassification = new Classification();
+        newClassification.setId(id);
+        newClassification.setCountry(country);
+        newClassification.setName(name);
+        newClassification.setAgeLimit(ageLimit);
+        return newClassification;
     }
 
     private Actor buildActor(UUID id, String name) {
-        Actor a = new Actor();
-        a.setId(id);
-        a.setName(name);
-        return a;
+        Actor newActor = new Actor();
+        newActor.setId(id);
+        newActor.setName(name);
+        return newActor;
     }
 
     private Category buildCategory(UUID id, String name) {
-        Category c = new Category();
-        c.setId(id);
-        c.setName(name);
-        return c;
+        Category newCategory = new Category();
+        newCategory.setId(id);
+        newCategory.setName(name);
+        return newCategory;
     }
 
     private People buildPeople(UUID id, String name) {
-        People p = new People();
-        p.setId(id);
-        p.setName(name);
-        return p;
+        People newPeople = new People();
+        newPeople.setId(id);
+        newPeople.setName(name);
+        return newPeople;
     }
 }
