@@ -14,4 +14,6 @@ public interface PosterRepository extends JpaRepository<Poster, UUID> {
     List<Poster> findByMovie_Id(UUID movieId);
 
     Optional<Poster> findByMovie_IdAndIsMain(UUID movieId, boolean isMain);
+
+    List<Poster> findByMovie_IdIn(List<UUID> movieIds);
 }

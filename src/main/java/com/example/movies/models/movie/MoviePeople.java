@@ -6,6 +6,8 @@ import com.example.movies.models.enums.RolMovieEnum;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -31,6 +33,7 @@ public class MoviePeople {
     private People people;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "rol", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "rol", nullable = false, columnDefinition = "rol_movie_enum")
     private RolMovieEnum rol;
 }

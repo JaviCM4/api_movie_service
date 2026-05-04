@@ -3,6 +3,7 @@ package com.example.movies.repositories.movie;
 import com.example.movies.models.movie.Movie;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,11 +12,17 @@ import java.util.UUID;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, UUID> {
 
-    List<Movie> findByIsActive(boolean isActive);
-
     List<Movie> findByTitleContainingIgnoreCase(String title);
 
-    List<Movie> findByClassification_Id(UUID classificationId);
+    @Query("""
+        SELECT DISTINCT m FROM Movie m
+        WHERE m.id IN (
+            SELECT mci.movie.id FROM MovieCountryInfo mci
+            JOIN mci.classification c
+            WHERE mci.isActive = true AND c.country.id = :countryId
+        )
+    """)
+    List<Movie> findActiveByCountryId(@Param("countryId") UUID countryId);
 
     @Query("""
         SELECT DISTINCT m

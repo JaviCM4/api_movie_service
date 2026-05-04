@@ -1,13 +1,12 @@
 package com.example.movies.services.actor;
 
-import com.example.movies.dtos.ActorResponse;
-import com.example.movies.dtos.CreateActorRequest;
-import com.example.movies.dtos.UpdateActorRequest;
+import com.example.movies.dtos.actor.response.ActorResponse;
+import com.example.movies.dtos.actor.request.CreateActorRequest;
+import com.example.movies.dtos.actor.request.UpdateActorRequest;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.actor.Actor;
 import com.example.movies.repositories.actor.ActorRepository;
-import com.example.movies.services.ActorServiceImplementation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

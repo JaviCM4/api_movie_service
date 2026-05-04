@@ -1,4 +1,4 @@
-package com.example.movies.dtos;
+package com.example.movies.dtos.actor.response;
 
 import com.example.movies.models.actor.Actor;
 import lombok.AllArgsConstructor;

@@ -19,7 +19,7 @@ public class Actor {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "name", nullable = false, length = 75)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
     @Column(name = "url_image", length = 500)
