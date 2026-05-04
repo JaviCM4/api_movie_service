@@ -1,8 +1,8 @@
 package com.example.movies.services;
 
-import com.example.movies.dtos.ActorResponse;
-import com.example.movies.dtos.CreateActorRequest;
-import com.example.movies.dtos.UpdateActorRequest;
+import com.example.movies.dtos.actor.ActorResponse;
+import com.example.movies.dtos.actor.CreateActorRequest;
+import com.example.movies.dtos.actor.UpdateActorRequest;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 
