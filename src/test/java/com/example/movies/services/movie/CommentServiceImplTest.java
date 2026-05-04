@@ -3,6 +3,7 @@ package com.example.movies.services.movie;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
+import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.movie.Movie;
 import com.example.movies.models.movie.MovieComment;
@@ -48,7 +49,7 @@ public class CommentServiceImplTest {
         CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
 
         Movie movie = buildMovie();
-        MovieComment saved = buildComment(movie, "Excelente película");
+        MovieComment saved = buildComment(movie, "Excelente película", null);
 
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(movie));
         when(commentRepository.save(any(MovieComment.class))).thenReturn(saved);
@@ -63,7 +64,8 @@ public class CommentServiceImplTest {
                 () -> assertEquals("Excelente película", captor.getValue().getContent()),
                 () -> assertEquals(COMMENT_ID,            result.getId()),
                 () -> assertEquals(USER_ID,               result.getUserId()),
-                () -> assertEquals("Excelente película", result.getContent())
+                () -> assertEquals("Excelente película", result.getContent()),
+                () -> assertFalse(result.isEdited())
         );
     }
 
@@ -80,6 +82,22 @@ public class CommentServiceImplTest {
         verify(commentRepository, never()).save(any());
     }
 
+    @Test
+    void testCreateCommentWhenCommentsNotAllowed() {
+        // Arrange
+        CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
+
+        Movie movie = buildMovie();
+        movie.setAllowComments(false);
+
+        when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(movie));
+
+        // Assert
+        assertThrows(ConflictException.class,
+                () -> commentService.createComment(MOVIE_ID, request));
+        verify(commentRepository, never()).save(any());
+    }
+
     // ── updateComment ─────────────────────────────────────────────────────
 
     @Test
@@ -91,8 +109,8 @@ public class CommentServiceImplTest {
         UpdateCommentRequest request = new UpdateCommentRequest("Contenido actualizado");
 
         Movie movie = buildMovie();
-        MovieComment existing = buildComment(movie, "Contenido original");
-        MovieComment updated  = buildComment(movie, "Contenido actualizado");
+        MovieComment existing = buildComment(movie, "Contenido original", null);
+        MovieComment updated  = buildComment(movie, "Contenido actualizado", LocalDateTime.now());
 
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(existing));
         when(commentRepository.save(any(MovieComment.class))).thenReturn(updated);
@@ -104,7 +122,8 @@ public class CommentServiceImplTest {
         assertAll(
                 () -> verify(commentRepository).save(captor.capture()),
                 () -> assertEquals("Contenido actualizado", captor.getValue().getContent()),
-                () -> assertEquals("Contenido actualizado", result.getContent())
+                () -> assertEquals("Contenido actualizado", result.getContent()),
+                () -> assertTrue(result.isEdited())
         );
     }
 
@@ -152,8 +171,8 @@ public class CommentServiceImplTest {
     void testFindCommentsByMovie() throws Exception {
         // Arrange
         Movie movie = buildMovie();
-        MovieComment c1 = buildComment(movie, "Primer comentario");
-        MovieComment c2 = buildComment(movie, "Segundo comentario");
+        MovieComment c1 = buildComment(movie, "Primer comentario", null);
+        MovieComment c2 = buildComment(movie, "Segundo comentario", LocalDateTime.now());
         c2.setId(UUID.randomUUID());
 
         when(movieRepository.existsById(MOVIE_ID)).thenReturn(true);
@@ -167,7 +186,9 @@ public class CommentServiceImplTest {
         assertAll(
                 () -> assertEquals(2, result.size()),
                 () -> assertEquals("Primer comentario",  result.get(0).getContent()),
-                () -> assertEquals("Segundo comentario", result.get(1).getContent())
+                () -> assertFalse(result.get(0).isEdited()),
+                () -> assertEquals("Segundo comentario", result.get(1).getContent()),
+                () -> assertTrue(result.get(1).isEdited())
         );
     }
 
@@ -188,16 +209,19 @@ public class CommentServiceImplTest {
         Movie m = new Movie();
         m.setId(MOVIE_ID);
         m.setTitle("Inception");
+        m.setAllowComments(true);
+        m.setAllowRatings(true);
         return m;
     }
 
-    private MovieComment buildComment(Movie movie, String content) {
+    private MovieComment buildComment(Movie movie, String content, LocalDateTime updatedAt) {
         MovieComment c = new MovieComment();
         c.setId(COMMENT_ID);
         c.setMovie(movie);
         c.setUserId(USER_ID);
         c.setContent(content);
         c.setCreatedAt(LocalDateTime.now());
+        c.setUpdatedAt(updatedAt);
         return c;
     }
 }

@@ -3,6 +3,7 @@ package com.example.movies.controllers;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
+import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.services.movie.CommentService;
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ public class CommentController {
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable UUID movieId,
             @Valid @RequestBody CreateCommentRequest request)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(movieId, request));
     }
 
