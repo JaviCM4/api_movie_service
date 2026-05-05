@@ -37,14 +37,14 @@ INSERT INTO classification (id, country_id, name, age_limit) VALUES
 -- -------------------------
 -- CATEGORIES
 -- -------------------------
-INSERT INTO category (id, name) VALUES
-    ('cccccccc-0003-0003-0003-000000000001', 'Action'),
-    ('cccccccc-0003-0003-0003-000000000002', 'Drama'),
-    ('cccccccc-0003-0003-0003-000000000003', 'Sci-Fi'),
-    ('cccccccc-0003-0003-0003-000000000004', 'Thriller'),
-    ('cccccccc-0003-0003-0003-000000000005', 'Comedy'),
-    ('cccccccc-0003-0003-0003-000000000006', 'Animation'),
-    ('cccccccc-0003-0003-0003-000000000007', 'Horror');
+INSERT INTO category (id, name, is_active) VALUES
+    ('cccccccc-0003-0003-0003-000000000001', 'Action',    TRUE),
+    ('cccccccc-0003-0003-0003-000000000002', 'Drama',     TRUE),
+    ('cccccccc-0003-0003-0003-000000000003', 'Sci-Fi',    TRUE),
+    ('cccccccc-0003-0003-0003-000000000004', 'Thriller',  TRUE),
+    ('cccccccc-0003-0003-0003-000000000005', 'Comedy',    TRUE),
+    ('cccccccc-0003-0003-0003-000000000006', 'Animation', TRUE),
+    ('cccccccc-0003-0003-0003-000000000007', 'Horror',    TRUE);
 
 -- -------------------------
 -- ACTORS

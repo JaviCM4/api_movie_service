@@ -19,4 +19,7 @@ public class Category {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
 }
