@@ -30,8 +30,7 @@ public class PeopleController {
     @PatchMapping("/{id}")
     public ResponseEntity<PeopleResponse> updatePeople(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdatePeopleRequest request)
-            throws ResourceNotFoundException, ConflictException {
+            @Valid @RequestBody UpdatePeopleRequest request) throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(peopleService.updatePeople(id, request));
     }
 }

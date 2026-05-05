@@ -25,16 +25,14 @@ public class CommentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable UUID movieId)
-            throws ResourceNotFoundException {
+    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable UUID movieId) throws ResourceNotFoundException {
         return ResponseEntity.ok(commentService.findCommentsByMovie(movieId));
     }
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable UUID movieId,
-            @Valid @RequestBody CreateCommentRequest request)
-            throws ResourceNotFoundException, ConflictException {
+            @Valid @RequestBody CreateCommentRequest request) throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(movieId, request));
     }
 
@@ -42,16 +40,14 @@ public class CommentController {
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable UUID movieId,
             @PathVariable UUID commentId,
-            @Valid @RequestBody UpdateCommentRequest request)
-            throws ResourceNotFoundException {
+            @Valid @RequestBody UpdateCommentRequest request) throws ResourceNotFoundException {
         return ResponseEntity.ok(commentService.updateComment(commentId, request));
     }
 
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable UUID movieId,
-            @PathVariable UUID commentId)
-            throws ResourceNotFoundException {
+            @PathVariable UUID commentId) throws ResourceNotFoundException {
         commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }

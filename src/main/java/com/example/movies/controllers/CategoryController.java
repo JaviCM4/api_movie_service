@@ -31,22 +31,19 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(
-            @Valid @RequestBody CreateCategoryRequest request)
-            throws ConflictException {
+            @Valid @RequestBody CreateCategoryRequest request) throws ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateCategoryRequest request)
-            throws ResourceNotFoundException, ConflictException {
+            @Valid @RequestBody UpdateCategoryRequest request) throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
     @PatchMapping("/{id}/toggle")
-    public ResponseEntity<CategoryResponse> toggleActive(@PathVariable UUID id)
-            throws ResourceNotFoundException {
+    public ResponseEntity<CategoryResponse> toggleActive(@PathVariable UUID id) throws ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.toggleActive(id));
     }
 }
