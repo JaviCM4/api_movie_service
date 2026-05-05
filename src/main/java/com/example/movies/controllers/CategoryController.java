@@ -7,6 +7,7 @@ import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.services.category.CategoryService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +16,12 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/v1/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @Autowired
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
@@ -30,20 +32,20 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryResponse> createCategory(
-            @Valid @RequestBody CreateCategoryRequest request) throws ConflictException {
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CreateCategoryRequest request)
+            throws ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CategoryResponse> updateCategory(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateCategoryRequest request) throws ConflictException, ResourceNotFoundException {
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable UUID id, @Valid @RequestBody UpdateCategoryRequest request)
+            throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
     @PatchMapping("/{id}/toggle")
-    public ResponseEntity<CategoryResponse> toggleActive(@PathVariable UUID id) throws ResourceNotFoundException {
+    public ResponseEntity<CategoryResponse> toggleActive(@PathVariable UUID id)
+            throws ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.toggleActive(id));
     }
 }

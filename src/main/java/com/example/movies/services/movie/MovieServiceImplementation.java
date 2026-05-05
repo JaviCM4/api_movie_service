@@ -2,6 +2,7 @@ package com.example.movies.services.movie;
 
 import com.example.movies.dtos.movie.request.*;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
+import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.actor.Actor;
@@ -22,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 @Service
 public class MovieServiceImplementation implements MovieService {
 
@@ -65,8 +65,9 @@ public class MovieServiceImplementation implements MovieService {
     }
 
     @Override
-    @Transactional
-    public void createMovie(CreateMovieRequest dto) throws ResourceNotFoundException, ConflictException {
+    @Transactional(rollbackFor = Exception.class)
+    public void createMovie(CreateMovieRequest dto)
+            throws ResourceNotFoundException, ConflictException {
         List<AssignActorRequest> actorRequests  = resolverService.deduplicateByKey(dto.getActors(),  AssignActorRequest::getActorId);
         List<AssignPeopleRequest> peopleRequests = resolverService.deduplicateByKey(dto.getPeople(),  AssignPeopleRequest::getPeopleId);
 
@@ -92,8 +93,9 @@ public class MovieServiceImplementation implements MovieService {
     }
 
     @Override
-    @Transactional
-    public void updateMovie(UUID movieId, UpdateMovieRequest dto) throws ResourceNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public void updateMovie(UUID movieId, UpdateMovieRequest dto)
+            throws ResourceNotFoundException {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
 
@@ -109,42 +111,52 @@ public class MovieServiceImplementation implements MovieService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MovieDetailResponse> findAllMoviesByCountry(UUID countryId) {
-        List<Movie> movies = movieRepository.findActiveByCountryId(countryId);
+    public List<MovieSummaryResponse> findAllMoviesByCountry(UUID countryId, String title, UUID categoryId, UUID classificationId, String sort) {
+        List<Movie> movies = movieRepository.findActiveByCountryIdWithFilters(countryId, title, categoryId, classificationId);
+
         if (movies.isEmpty()) return Collections.emptyList();
 
         List<UUID> movieIds = movies.stream().map(Movie::getId).toList();
-
-        Map<UUID, List<Cast>> castByMovieId = castRepository
-                .findWithActorByMovieIdIn(movieIds)
-                .stream().collect(Collectors.groupingBy(c -> c.getMovie().getId()));
 
         Map<UUID, List<MovieCountryInfo>> classifByMovieId = movieCountryInfoRepository
                 .findActiveByCountryAndMovieIdIn(movieIds, countryId)
                 .stream().collect(Collectors.groupingBy(mci -> mci.getMovie().getId()));
 
-        Map<UUID, List<MovieCategory>> categoriesByMovieId = movieCategoryRepository
-                .findWithCategoryByMovieIdIn(movieIds)
-                .stream().collect(Collectors.groupingBy(mc -> mc.getMovie().getId()));
-
         Map<UUID, List<Poster>> postersByMovieId = posterRepository
                 .findByMovie_IdIn(movieIds)
                 .stream().collect(Collectors.groupingBy(p -> p.getMovie().getId()));
 
-        Map<UUID, List<MoviePeople>> peopleByMovieId = moviePeopleRepository
-                .findWithPeopleByMovieIdIn(movieIds)
-                .stream().collect(Collectors.groupingBy(mp -> mp.getMovie().getId()));
-
-        return movies.stream()
-                .map(movie -> MovieDetailResponse.from(
+        List<MovieSummaryResponse> result = movies.stream()
+                .map(movie -> MovieSummaryResponse.from(
                         movie,
-                        castByMovieId.getOrDefault(movie.getId(), Collections.emptyList()),
                         classifByMovieId.getOrDefault(movie.getId(), Collections.emptyList()),
-                        categoriesByMovieId.getOrDefault(movie.getId(), Collections.emptyList()),
-                        postersByMovieId.getOrDefault(movie.getId(), Collections.emptyList()),
-                        peopleByMovieId.getOrDefault(movie.getId(), Collections.emptyList())
+                        postersByMovieId.getOrDefault(movie.getId(), Collections.emptyList())
                 ))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        if ("releaseDate".equalsIgnoreCase(sort)) {
+            result.sort(Comparator.comparing(MovieSummaryResponse::getReleaseDate,
+                    Comparator.nullsLast(Comparator.naturalOrder())));
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MovieDetailResponse findMovieById(UUID movieId, UUID countryId) throws ResourceNotFoundException {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+
+        List<UUID> ids = List.of(movieId);
+
+        List<Cast> casts = castRepository.findWithActorByMovieIdIn(ids);
+        List<MovieCountryInfo> classifs = movieCountryInfoRepository.findActiveByCountryAndMovieIdIn(ids, countryId);
+        List<MovieCategory> categories = movieCategoryRepository.findWithCategoryByMovieIdIn(ids);
+        List<Poster> posters = posterRepository.findByMovie_IdIn(ids);
+        List<MoviePeople> crew = moviePeopleRepository.findWithPeopleByMovieIdIn(ids);
+
+        return MovieDetailResponse.from(movie, casts, classifs, categories, posters, crew);
     }
 
     private List<Classification> resolveClassificationsWithCountry(List<UUID> ids)

@@ -11,6 +11,7 @@ import com.example.movies.models.movie.MovieRating;
 import com.example.movies.repositories.movie.MovieRatingRepository;
 import com.example.movies.repositories.movie.MovieRepository;
 import com.example.movies.services.movie.inteface.RatingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +24,14 @@ public class RatingServiceImplementation implements RatingService {
     private final MovieRatingRepository ratingRepository;
     private final MovieRepository movieRepository;
 
-    public RatingServiceImplementation(
-            MovieRatingRepository ratingRepository,
-            MovieRepository movieRepository) {
+    @Autowired
+    public RatingServiceImplementation(MovieRatingRepository ratingRepository, MovieRepository movieRepository) {
         this.ratingRepository = ratingRepository;
         this.movieRepository = movieRepository;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public RatingSummaryResponse createRating(UUID movieId, CreateRatingRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
@@ -53,7 +53,7 @@ public class RatingServiceImplementation implements RatingService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public RatingSummaryResponse updateRating(UUID ratingId, UpdateRatingRequest dto)
             throws ResourceNotFoundException {
         MovieRating rating = ratingRepository.findById(ratingId)
@@ -67,14 +67,13 @@ public class RatingServiceImplementation implements RatingService {
 
     @Override
     @Transactional(readOnly = true)
-    public RatingSummaryResponse findRatingsByMovie(UUID movieId) throws ResourceNotFoundException {
+    public RatingSummaryResponse findRatingsByMovie(UUID movieId)
+            throws ResourceNotFoundException {
         if (!movieRepository.existsById(movieId)) {
             throw new ResourceNotFoundException("Movie not found with id: " + movieId);
         }
         return buildSummary(movieId);
     }
-
-    // ── helpers ──────────────────────────────────────────────────────────
 
     private RatingSummaryResponse buildSummary(UUID movieId) {
         List<RatingResponse> ratings = ratingRepository.findByMovie_Id(movieId)

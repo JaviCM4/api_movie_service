@@ -6,6 +6,7 @@ import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.services.people.PeopleService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +14,12 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/people")
+@RequestMapping("/v1/people")
 public class PeopleController {
 
     private final PeopleService peopleService;
 
+    @Autowired
     public PeopleController(PeopleService peopleService) {
         this.peopleService = peopleService;
     }

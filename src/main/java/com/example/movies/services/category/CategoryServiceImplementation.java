@@ -7,6 +7,7 @@ import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.category.Category;
 import com.example.movies.repositories.category.CategoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +19,13 @@ public class CategoryServiceImplementation implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Autowired
     public CategoryServiceImplementation(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CategoryResponse createCategory(CreateCategoryRequest dto) throws ConflictException {
         if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new ConflictException("Category already exists with name: " + dto.getName());
@@ -35,7 +37,7 @@ public class CategoryServiceImplementation implements CategoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CategoryResponse updateCategory(UUID id, UpdateCategoryRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Category category = categoryRepository.findById(id)
@@ -46,17 +48,17 @@ public class CategoryServiceImplementation implements CategoryService {
         }
 
         category.setName(dto.getName());
-        return CategoryResponse.from(categoryRepository.save(category));
+        return CategoryResponse.from(category);
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CategoryResponse toggleActive(UUID id) throws ResourceNotFoundException {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
         category.setActive(!category.isActive());
-        return CategoryResponse.from(categoryRepository.save(category));
+        return CategoryResponse.from(category);
     }
 
     @Override

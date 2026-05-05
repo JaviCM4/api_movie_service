@@ -5,14 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 
 @Value
-@AllArgsConstructor
 public class ActorResponse {
 
     private String name;
     private String urlImage;
 
-    public ActorResponse(Actor actor) {
-        this.name = actor.getName();
-        this.urlImage = actor.getUrlImage();
+    public static ActorResponse from (Actor actor) {
+        return new ActorResponse(actor.getName(), actor.getUrlImage());
     }
 }

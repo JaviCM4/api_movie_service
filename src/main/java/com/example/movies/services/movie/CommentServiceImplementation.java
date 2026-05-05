@@ -10,6 +10,7 @@ import com.example.movies.models.movie.MovieComment;
 import com.example.movies.repositories.movie.MovieCommentRepository;
 import com.example.movies.repositories.movie.MovieRepository;
 import com.example.movies.services.movie.inteface.CommentService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class CommentServiceImplementation implements CommentService {
     private final MovieCommentRepository commentRepository;
     private final MovieRepository movieRepository;
 
+    @Autowired
     public CommentServiceImplementation(MovieCommentRepository commentRepository, MovieRepository movieRepository) {
         this.commentRepository = commentRepository;
         this.movieRepository = movieRepository;
@@ -29,7 +31,8 @@ public class CommentServiceImplementation implements CommentService {
 
     @Override
     @Transactional
-    public CommentResponse createComment(UUID movieId, CreateCommentRequest dto) throws ResourceNotFoundException, ConflictException {
+    public CommentResponse createComment(UUID movieId, CreateCommentRequest dto)
+            throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
 
@@ -43,8 +46,9 @@ public class CommentServiceImplementation implements CommentService {
     }
 
     @Override
-    @Transactional
-    public CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto) throws ResourceNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto)
+            throws ResourceNotFoundException {
         MovieComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
 
@@ -53,8 +57,9 @@ public class CommentServiceImplementation implements CommentService {
     }
 
     @Override
-    @Transactional
-    public void deleteComment(UUID commentId) throws ResourceNotFoundException {
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteComment(UUID commentId)
+            throws ResourceNotFoundException {
         if (!commentRepository.existsById(commentId)) {
             throw new ResourceNotFoundException("Comment not found with id: " + commentId);
         }
@@ -63,7 +68,8 @@ public class CommentServiceImplementation implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentResponse> findCommentsByMovie(UUID movieId) throws ResourceNotFoundException {
+    public List<CommentResponse> findCommentsByMovie(UUID movieId)
+            throws ResourceNotFoundException {
         if (!movieRepository.existsById(movieId)) {
             throw new ResourceNotFoundException("Movie not found with id: " + movieId);
         }

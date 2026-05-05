@@ -31,4 +31,25 @@ public interface MovieRepository extends JpaRepository<Movie, UUID> {
         WHERE mc.category.id = :categoryId
     """)
     List<Movie> findByCategory_Id(UUID categoryId);
+
+    @Query("""
+        SELECT DISTINCT m FROM Movie m
+        LEFT JOIN MovieCategory mc ON mc.movie.id = m.id
+        WHERE m.id IN (
+            SELECT mci.movie.id FROM MovieCountryInfo mci
+            WHERE mci.isActive = true AND mci.classification.country.id = :countryId
+        )
+        AND (:title IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%')))
+        AND (:categoryId IS NULL OR mc.category.id = :categoryId)
+        AND (:classificationId IS NULL OR m.id IN (
+            SELECT mci2.movie.id FROM MovieCountryInfo mci2
+            WHERE mci2.isActive = true
+              AND mci2.classification.country.id = :countryId
+              AND mci2.classification.id = :classificationId
+        ))
+    """)
+    List<Movie> findActiveByCountryIdWithFilters(@Param("countryId") UUID countryId,
+                                                 @Param("title") String title,
+                                                 @Param("categoryId") UUID categoryId,
+                                                 @Param("classificationId") UUID classificationId);
 }

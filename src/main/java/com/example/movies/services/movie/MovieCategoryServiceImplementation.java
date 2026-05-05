@@ -10,6 +10,7 @@ import com.example.movies.repositories.category.CategoryRepository;
 import com.example.movies.repositories.movie.MovieCategoryRepository;
 import com.example.movies.repositories.movie.MovieRepository;
 import com.example.movies.services.movie.inteface.MovieCategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,16 +24,15 @@ public class MovieCategoryServiceImplementation implements MovieCategoryService 
     private final CategoryRepository categoryRepository;
     private final MovieCategoryRepository movieCategoryRepository;
 
-    public MovieCategoryServiceImplementation(MovieRepository movieRepository,
-                                              CategoryRepository categoryRepository,
-                                              MovieCategoryRepository movieCategoryRepository) {
+    @Autowired
+    public MovieCategoryServiceImplementation(MovieRepository movieRepository, CategoryRepository categoryRepository, MovieCategoryRepository movieCategoryRepository) {
         this.movieRepository = movieRepository;
         this.categoryRepository = categoryRepository;
         this.movieCategoryRepository = movieCategoryRepository;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<CategoryResponse> addCategory(UUID movieId, UUID categoryId)
             throws ResourceNotFoundException, ConflictException {
 
@@ -55,7 +55,7 @@ public class MovieCategoryServiceImplementation implements MovieCategoryService 
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<CategoryResponse> removeCategory(UUID movieId, UUID categoryId)
             throws ResourceNotFoundException, ConflictException {
 
@@ -71,11 +71,9 @@ public class MovieCategoryServiceImplementation implements MovieCategoryService 
                 .stream()
                 .filter(mc -> mc.getCategory().getId().equals(categoryId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Category not found in this movie"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found in this movie"));
 
         movieCategoryRepository.delete(movieCategory);
-
         return getCategories(movieId);
     }
 
