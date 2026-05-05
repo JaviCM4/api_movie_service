@@ -16,6 +16,7 @@ import com.example.movies.repositories.category.CategoryRepository;
 import com.example.movies.repositories.classification.ClassificationRepository;
 import com.example.movies.repositories.movie.*;
 import com.example.movies.repositories.people.PeopleRepository;
+import com.example.movies.services.utils.ResolverService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
