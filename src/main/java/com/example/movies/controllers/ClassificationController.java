@@ -3,14 +3,13 @@ package com.example.movies.controllers;
 import com.example.movies.dtos.classification.response.ClassificationResponse;
 import com.example.movies.services.classification.ClassificationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/classifications")
+@RequestMapping("/api/countries/{countryId}/classifications")
 public class ClassificationController {
 
     private final ClassificationService classificationService;
@@ -20,7 +19,7 @@ public class ClassificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ClassificationResponse>> getAll() {
-        return ResponseEntity.ok(classificationService.findAll());
+    public ResponseEntity<List<ClassificationResponse>> getByCountry(@PathVariable UUID countryId) {
+        return ResponseEntity.ok(classificationService.findByCountry(countryId));
     }
 }
