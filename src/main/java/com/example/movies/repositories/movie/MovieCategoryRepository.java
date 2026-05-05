@@ -14,6 +14,10 @@ public interface MovieCategoryRepository extends JpaRepository<MovieCategory, UU
 
     List<MovieCategory> findByMovie_Id(UUID movieId);
 
+    long countByMovie_Id(UUID movieId);
+
+    boolean existsByMovie_IdAndCategory_Id(UUID movieId, UUID categoryId);
+
     @Query("SELECT mc FROM MovieCategory mc JOIN FETCH mc.category WHERE mc.movie.id IN :movieIds")
     List<MovieCategory> findWithCategoryByMovieIdIn(@Param("movieIds") List<UUID> movieIds);
 }
