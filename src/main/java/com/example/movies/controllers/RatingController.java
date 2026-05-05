@@ -24,16 +24,14 @@ public class RatingController {
     }
 
     @GetMapping
-    public ResponseEntity<RatingSummaryResponse> getRatings(@PathVariable UUID movieId)
-            throws ResourceNotFoundException {
+    public ResponseEntity<RatingSummaryResponse> getRatings(@PathVariable UUID movieId) throws ResourceNotFoundException {
         return ResponseEntity.ok(ratingService.findRatingsByMovie(movieId));
     }
 
     @PostMapping
     public ResponseEntity<RatingSummaryResponse> createRating(
             @PathVariable UUID movieId,
-            @Valid @RequestBody CreateRatingRequest request)
-            throws ResourceNotFoundException, ConflictException {
+            @Valid @RequestBody CreateRatingRequest request) throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(ratingService.createRating(movieId, request));
     }
 
@@ -41,8 +39,7 @@ public class RatingController {
     public ResponseEntity<RatingSummaryResponse> updateRating(
             @PathVariable UUID movieId,
             @PathVariable UUID ratingId,
-            @Valid @RequestBody UpdateRatingRequest request)
-            throws ResourceNotFoundException {
+            @Valid @RequestBody UpdateRatingRequest request) throws ResourceNotFoundException {
         return ResponseEntity.ok(ratingService.updateRating(ratingId, request));
     }
 }

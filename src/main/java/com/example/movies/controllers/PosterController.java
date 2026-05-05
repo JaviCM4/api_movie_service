@@ -27,24 +27,21 @@ public class PosterController {
     @PostMapping
     public ResponseEntity<List<PosterResponse>> addPoster(
             @PathVariable UUID movieId,
-            @Valid @RequestBody CreatePosterRequest request)
-            throws ResourceNotFoundException, ConflictException {
+            @Valid @RequestBody CreatePosterRequest request) throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(posterService.addPoster(movieId, request));
     }
 
     @PatchMapping("/main")
     public ResponseEntity<List<PosterResponse>> setMainPoster(
             @PathVariable UUID movieId,
-            @Valid @RequestBody UpdatePosterRequest request)
-            throws ResourceNotFoundException {
+            @Valid @RequestBody UpdatePosterRequest request) throws ResourceNotFoundException {
         return ResponseEntity.ok(posterService.setMainPoster(movieId, request));
     }
 
     @DeleteMapping("/{posterId}")
     public ResponseEntity<List<PosterResponse>> deletePoster(
             @PathVariable UUID movieId,
-            @PathVariable UUID posterId)
-            throws ResourceNotFoundException, ConflictException {
+            @PathVariable UUID posterId) throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(posterService.deletePoster(posterId));
     }
 }
