@@ -18,4 +18,7 @@ public interface ClassificationRepository extends JpaRepository<Classification, 
      */
     @Query("SELECT c FROM Classification c JOIN FETCH c.country WHERE c.id IN :ids")
     List<Classification> findWithCountryByIdIn(@Param("ids") List<UUID> ids);
+
+    @Query("SELECT c FROM Classification c JOIN FETCH c.country WHERE c.country.id = :countryId")
+    List<Classification> findByCountryId(@Param("countryId") UUID countryId);
 }
