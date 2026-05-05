@@ -1,4 +1,4 @@
-package com.example.movies.services.movie;
+package com.example.movies.services.utils;
 
 import com.example.movies.exceptions.ResourceNotFoundException;
 import org.springframework.stereotype.Component;

@@ -14,6 +14,7 @@ import com.example.movies.repositories.category.CategoryRepository;
 import com.example.movies.repositories.classification.ClassificationRepository;
 import com.example.movies.repositories.movie.*;
 import com.example.movies.repositories.people.PeopleRepository;
+import com.example.movies.services.utils.ResolverService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
