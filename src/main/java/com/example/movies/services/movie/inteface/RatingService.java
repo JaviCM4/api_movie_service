@@ -1,4 +1,4 @@
-package com.example.movies.services.movie;
+package com.example.movies.services.movie.inteface;
 
 import com.example.movies.dtos.movie.request.CreateRatingRequest;
 import com.example.movies.dtos.movie.request.UpdateRatingRequest;

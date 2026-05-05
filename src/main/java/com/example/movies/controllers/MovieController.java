@@ -5,7 +5,7 @@ import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.request.UpdateMovieRequest;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
-import com.example.movies.services.movie.MovieService;
+import com.example.movies.services.movie.inteface.MovieService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

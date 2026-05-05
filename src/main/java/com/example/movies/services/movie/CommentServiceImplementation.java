@@ -9,6 +9,7 @@ import com.example.movies.models.movie.Movie;
 import com.example.movies.models.movie.MovieComment;
 import com.example.movies.repositories.movie.MovieCommentRepository;
 import com.example.movies.repositories.movie.MovieRepository;
+import com.example.movies.services.movie.inteface.CommentService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

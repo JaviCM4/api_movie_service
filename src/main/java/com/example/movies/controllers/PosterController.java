@@ -5,7 +5,7 @@ import com.example.movies.dtos.movie.request.UpdatePosterRequest;
 import com.example.movies.dtos.movie.response.PosterResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
-import com.example.movies.services.movie.PosterService;
+import com.example.movies.services.movie.inteface.PosterService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

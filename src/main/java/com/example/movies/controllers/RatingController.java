@@ -5,7 +5,7 @@ import com.example.movies.dtos.movie.request.UpdateRatingRequest;
 import com.example.movies.dtos.movie.response.RatingSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
-import com.example.movies.services.movie.RatingService;
+import com.example.movies.services.movie.inteface.RatingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

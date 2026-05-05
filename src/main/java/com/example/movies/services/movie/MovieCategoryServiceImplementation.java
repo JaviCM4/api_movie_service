@@ -9,6 +9,7 @@ import com.example.movies.models.movie.MovieCategory;
 import com.example.movies.repositories.category.CategoryRepository;
 import com.example.movies.repositories.movie.MovieCategoryRepository;
 import com.example.movies.repositories.movie.MovieRepository;
+import com.example.movies.services.movie.inteface.MovieCategoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

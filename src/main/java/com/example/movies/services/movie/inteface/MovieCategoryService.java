@@ -1,4 +1,4 @@
-package com.example.movies.services.movie;
+package com.example.movies.services.movie.inteface;
 
 import com.example.movies.dtos.category.response.CategoryResponse;
 import com.example.movies.exceptions.ConflictException;
