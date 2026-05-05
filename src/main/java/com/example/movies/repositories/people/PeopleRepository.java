@@ -10,4 +10,8 @@ import java.util.UUID;
 @Repository
 public interface PeopleRepository extends JpaRepository<People, UUID> {
 
+    Boolean existsByNameIgnoreCase(String name);
+
+    Boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
+
 }
