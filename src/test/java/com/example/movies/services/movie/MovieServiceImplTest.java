@@ -1,6 +1,7 @@
 package com.example.movies.services.movie;
 
 import com.example.movies.dtos.movie.request.*;
+import com.example.movies.dtos.movie.response.MovieAdminResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -238,7 +239,9 @@ public class MovieServiceImplTest {
                 120,
                 "https://www.youtube.com/watch?v=newtrailer",
                 "English",
-                LocalDate.now().plusYears(1)
+                LocalDate.now().plusYears(1),
+                null,
+                null
         );
 
         when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
@@ -271,7 +274,7 @@ public class MovieServiceImplTest {
 
         // Solo actualiza el título, el resto queda null
         UpdateMovieRequest request = new UpdateMovieRequest(
-                "Updated Title", null, null, null, null, null
+                "Updated Title", null, null, null, null, null, null, null
         );
 
         when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
@@ -293,7 +296,7 @@ public class MovieServiceImplTest {
     void testUpdateMovieWhenMovieNotFound() {
         // Arrange
         UpdateMovieRequest request = new UpdateMovieRequest(
-                "New Title", null, null, null, null, null
+                "New Title", null, null, null, null, null, null, null
         );
 
         when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.empty());
@@ -501,6 +504,77 @@ public class MovieServiceImplTest {
         // Assert
         assertThrows(ResourceNotFoundException.class,
                 () -> movieService.findMovieById(SAVED_MOVIE_ID, COUNTRY_ID_USA));
+    }
+
+    @Test
+    void testUpdateMovieAllowFlags() throws Exception {
+        // Arrange
+        MovieServiceImplementation spy = spy(movieService);
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+
+        Movie existing = new Movie();
+        existing.setId(SAVED_MOVIE_ID);
+        existing.setTitle("Inception");
+        existing.setAllowComments(true);
+        existing.setAllowRatings(true);
+
+        UpdateMovieRequest request = new UpdateMovieRequest(
+                null, null, null, null, null, null, false, false
+        );
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
+        when(movieRepository.save(any(Movie.class))).thenReturn(existing);
+
+        // Act
+        spy.updateMovie(SAVED_MOVIE_ID, request);
+
+        // Assert
+        assertAll(
+                () -> verify(movieRepository).save(movieCaptor.capture()),
+                () -> assertFalse(movieCaptor.getValue().isAllowComments()),
+                () -> assertFalse(movieCaptor.getValue().isAllowRatings()),
+                () -> assertEquals("Inception", movieCaptor.getValue().getTitle())
+        );
+    }
+
+    @Test
+    void testFindMovieAdminById() throws Exception {
+        // Arrange
+        Movie movie = buildSavedMovie();
+        movie.setTitle("Inception");
+        movie.setSynopsis("Una sinopsis");
+        movie.setDuration(148);
+        movie.setOriginalLanguage("English");
+        movie.setReleaseDate(LocalDate.of(2027, 1, 1));
+        movie.setAllowComments(true);
+        movie.setAllowRatings(false);
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(movie));
+
+        // Act
+        MovieAdminResponse result = movieService.findMovieAdminById(SAVED_MOVIE_ID);
+
+        // Assert
+        assertAll(
+                () -> assertEquals(SAVED_MOVIE_ID,     result.getId()),
+                () -> assertEquals("Inception",        result.getTitle()),
+                () -> assertEquals("Una sinopsis",     result.getSynopsis()),
+                () -> assertEquals(148,                result.getDuration()),
+                () -> assertEquals("English",          result.getOriginalLanguage()),
+                () -> assertEquals(LocalDate.of(2027, 1, 1), result.getReleaseDate()),
+                () -> assertTrue(result.isAllowComments()),
+                () -> assertFalse(result.isAllowRatings())
+        );
+    }
+
+    @Test
+    void testFindMovieAdminByIdWhenNotFound() {
+        // Arrange
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.empty());
+
+        // Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> movieService.findMovieAdminById(SAVED_MOVIE_ID));
     }
 
     private CreateMovieRequest buildRequest(
