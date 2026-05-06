@@ -18,6 +18,8 @@ public interface MovieCountryInfoRepository extends JpaRepository<MovieCountryIn
 
     List<MovieCountryInfo> findByMovie_Id(UUID movieId);
 
+    boolean existsByMovie_IdAndClassification_Id(UUID movieId, UUID classificationId);
+
     /**
      * Batch-fetches the active MovieCountryInfo for a specific country.
      * Country is JOIN FETCHed to avoid lazy loading in the DTO mapping.
