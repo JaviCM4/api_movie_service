@@ -48,7 +48,7 @@ public class CategoryServiceImplementation implements CategoryService {
         }
 
         category.setName(dto.getName());
-        return CategoryResponse.from(category);
+        return CategoryResponse.from(categoryRepository.save(category));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class CategoryServiceImplementation implements CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
         category.setActive(!category.isActive());
-        return CategoryResponse.from(category);
+        return CategoryResponse.from(categoryRepository.save(category));
     }
 
     @Override

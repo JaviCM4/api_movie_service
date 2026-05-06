@@ -2,6 +2,7 @@ package com.example.movies.controllers;
 
 import com.example.movies.dtos.movie.request.CreateMovieRequest;
 import com.example.movies.dtos.movie.request.UpdateMovieRequest;
+import com.example.movies.dtos.movie.response.MovieAdminResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -48,6 +49,12 @@ public class MovieController {
             throws ConflictException, ResourceNotFoundException {
         movieService.createMovie(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/{movieId}/admin")
+    public ResponseEntity<MovieAdminResponse> getMovieAdmin(@PathVariable UUID movieId)
+            throws ResourceNotFoundException {
+        return ResponseEntity.ok(movieService.findMovieAdminById(movieId));
     }
 
     @PatchMapping("/{movieId}")

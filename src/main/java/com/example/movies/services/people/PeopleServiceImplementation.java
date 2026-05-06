@@ -35,7 +35,7 @@ public class PeopleServiceImplementation implements PeopleService {
         }
 
         people.setName(dto.getName());
-        return PeopleResponse.from(people);
+        return PeopleResponse.from(peopleRepository.save(people));
     }
 
     @Override

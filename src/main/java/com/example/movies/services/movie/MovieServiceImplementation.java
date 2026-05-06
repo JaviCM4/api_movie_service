@@ -1,6 +1,7 @@
 package com.example.movies.services.movie;
 
 import com.example.movies.dtos.movie.request.*;
+import com.example.movies.dtos.movie.response.MovieAdminResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -105,6 +106,8 @@ public class MovieServiceImplementation implements MovieService {
         if (dto.getTrailerLink() != null) movie.setTrailerLink(dto.getTrailerLink());
         if (dto.getOriginalLanguage() != null) movie.setOriginalLanguage(dto.getOriginalLanguage());
         if (dto.getReleaseDate() != null) movie.setReleaseDate(dto.getReleaseDate());
+        if (dto.getAllowComments() != null) movie.setAllowComments(dto.getAllowComments());
+        if (dto.getAllowRatings() != null) movie.setAllowRatings(dto.getAllowRatings());
 
         movieRepository.save(movie);
     }
@@ -157,6 +160,14 @@ public class MovieServiceImplementation implements MovieService {
         List<MoviePeople> crew = moviePeopleRepository.findWithPeopleByMovieIdIn(ids);
 
         return MovieDetailResponse.from(movie, casts, classifs, categories, posters, crew);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MovieAdminResponse findMovieAdminById(UUID movieId) throws ResourceNotFoundException {
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+        return MovieAdminResponse.from(movie);
     }
 
     private List<Classification> resolveClassificationsWithCountry(List<UUID> ids)
