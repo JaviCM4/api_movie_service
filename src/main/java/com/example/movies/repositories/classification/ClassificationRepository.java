@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -18,6 +19,9 @@ public interface ClassificationRepository extends JpaRepository<Classification, 
      */
     @Query("SELECT c FROM Classification c JOIN FETCH c.country WHERE c.id IN :ids")
     List<Classification> findWithCountryByIdIn(@Param("ids") List<UUID> ids);
+
+    @Query("SELECT c FROM Classification c JOIN FETCH c.country WHERE c.id = :id")
+    Optional<Classification> findWithCountryById(@Param("id") UUID id);
 
     @Query("SELECT c FROM Classification c JOIN FETCH c.country WHERE c.country.id = :countryId")
     List<Classification> findByCountryId(@Param("countryId") UUID countryId);

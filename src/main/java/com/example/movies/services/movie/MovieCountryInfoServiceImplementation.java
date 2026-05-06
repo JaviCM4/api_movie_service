@@ -39,12 +39,18 @@ public class MovieCountryInfoServiceImplementation implements MovieCountryInfoSe
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
 
-        Classification classification = classificationRepository.findById(classificationId)
+        Classification classification = classificationRepository.findWithCountryById(classificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Classification not found with id: " + classificationId));
 
         if (movieCountryInfoRepository.existsByMovie_IdAndClassification_Id(movieId, classificationId)) {
             throw new ConflictException("Classification '" + classification.getName()
                     + "' is already assigned to this movie");
+        }
+
+        UUID countryId = classification.getCountry().getId();
+        if (movieCountryInfoRepository.existsByMovie_IdAndCountryId(movieId, countryId)) {
+            throw new ConflictException("This movie already has a classification for country '"
+                    + classification.getCountry().getName() + "'");
         }
 
         MovieCountryInfo mci = new MovieCountryInfo();
