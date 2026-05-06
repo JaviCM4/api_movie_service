@@ -14,6 +14,8 @@ public interface CastRepository extends JpaRepository<Cast, UUID> {
 
     List<Cast> findByMovie_Id(UUID movieId);
 
+    boolean existsByMovie_IdAndActor_Id(UUID movieId, UUID actorId);
+
     @Query("SELECT c FROM Cast c JOIN FETCH c.actor WHERE c.movie.id IN :movieIds")
     List<Cast> findWithActorByMovieIdIn(@Param("movieIds") List<UUID> movieIds);
 }
