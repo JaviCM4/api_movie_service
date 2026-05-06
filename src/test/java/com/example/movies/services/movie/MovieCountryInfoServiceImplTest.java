@@ -51,8 +51,9 @@ public class MovieCountryInfoServiceImplTest {
         MovieCountryInfo saved        = buildMci(movie, classification, true);
 
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(movie));
-        when(classificationRepository.findById(CLASSIFICATION_ID)).thenReturn(Optional.of(classification));
+        when(classificationRepository.findWithCountryById(CLASSIFICATION_ID)).thenReturn(Optional.of(classification));
         when(movieCountryInfoRepository.existsByMovie_IdAndClassification_Id(MOVIE_ID, CLASSIFICATION_ID)).thenReturn(false);
+        when(movieCountryInfoRepository.existsByMovie_IdAndCountryId(MOVIE_ID, COUNTRY_ID)).thenReturn(false);
         when(movieCountryInfoRepository.save(any(MovieCountryInfo.class))).thenReturn(saved);
         when(movieCountryInfoRepository.findByMovie_Id(MOVIE_ID)).thenReturn(List.of(saved));
 
@@ -87,7 +88,7 @@ public class MovieCountryInfoServiceImplTest {
     void testAddClassificationWhenClassificationNotFound() {
         // Arrange
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(buildMovie()));
-        when(classificationRepository.findById(CLASSIFICATION_ID)).thenReturn(Optional.empty());
+        when(classificationRepository.findWithCountryById(CLASSIFICATION_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
@@ -99,8 +100,22 @@ public class MovieCountryInfoServiceImplTest {
     void testAddClassificationWhenAlreadyAssigned() {
         // Arrange
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(buildMovie()));
-        when(classificationRepository.findById(CLASSIFICATION_ID)).thenReturn(Optional.of(buildClassification()));
+        when(classificationRepository.findWithCountryById(CLASSIFICATION_ID)).thenReturn(Optional.of(buildClassification()));
         when(movieCountryInfoRepository.existsByMovie_IdAndClassification_Id(MOVIE_ID, CLASSIFICATION_ID)).thenReturn(true);
+
+        // Assert
+        assertThrows(ConflictException.class,
+                () -> movieCountryInfoService.addClassification(MOVIE_ID, CLASSIFICATION_ID));
+        verify(movieCountryInfoRepository, never()).save(any());
+    }
+
+    @Test
+    void testAddClassificationWhenCountryAlreadyHasClassification() {
+        // Arrange
+        when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(buildMovie()));
+        when(classificationRepository.findWithCountryById(CLASSIFICATION_ID)).thenReturn(Optional.of(buildClassification()));
+        when(movieCountryInfoRepository.existsByMovie_IdAndClassification_Id(MOVIE_ID, CLASSIFICATION_ID)).thenReturn(false);
+        when(movieCountryInfoRepository.existsByMovie_IdAndCountryId(MOVIE_ID, COUNTRY_ID)).thenReturn(true);
 
         // Assert
         assertThrows(ConflictException.class,
