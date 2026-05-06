@@ -29,4 +29,8 @@ public class UpdateMovieRequest {
 
     @Future
     LocalDate releaseDate;
+
+    Boolean allowComments;
+
+    Boolean allowRatings;
 }

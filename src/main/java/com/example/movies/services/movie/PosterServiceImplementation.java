@@ -30,7 +30,7 @@ public class PosterServiceImplementation implements PosterService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<PosterResponse> addPoster(UUID movieId, CreatePosterRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
@@ -49,7 +49,7 @@ public class PosterServiceImplementation implements PosterService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<PosterResponse> setMainPoster(UUID movieId, UpdatePosterRequest dto)
             throws ResourceNotFoundException {
         // Verificar que la película exista
@@ -61,7 +61,6 @@ public class PosterServiceImplementation implements PosterService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Poster not found with id: " + dto.getNewMainPosterId()));
 
-        // Desmarcar el main actual (si no es el mismo)
         posterRepository.findByMovie_IdAndIsMain(movieId, true)
                 .ifPresent(current -> {
                     if (!current.getId().equals(newMain.getId())) {
@@ -77,7 +76,7 @@ public class PosterServiceImplementation implements PosterService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public List<PosterResponse> deletePoster(UUID posterId)
             throws ResourceNotFoundException, ConflictException {
         Poster poster = posterRepository.findById(posterId)
@@ -93,7 +92,6 @@ public class PosterServiceImplementation implements PosterService {
         boolean wasMain = poster.isMain();
         posterRepository.deleteById(posterId);
 
-        // Si era el main, asignar automáticamente el primero restante
         if (wasMain) {
             List<Poster> remaining = posterRepository.findByMovie_Id(movieId);
             Poster next = remaining.get(0);
@@ -103,8 +101,6 @@ public class PosterServiceImplementation implements PosterService {
 
         return postersOf(movieId);
     }
-
-    // ── helpers ───────────────────────────────────────────────────────────
 
     private List<PosterResponse> postersOf(UUID movieId) {
         return posterRepository.findByMovie_Id(movieId)

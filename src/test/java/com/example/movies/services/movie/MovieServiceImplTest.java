@@ -1,7 +1,9 @@
 package com.example.movies.services.movie;
 
 import com.example.movies.dtos.movie.request.*;
+import com.example.movies.dtos.movie.response.MovieAdminResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
+import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.actor.Actor;
@@ -237,7 +239,9 @@ public class MovieServiceImplTest {
                 120,
                 "https://www.youtube.com/watch?v=newtrailer",
                 "English",
-                LocalDate.now().plusYears(1)
+                LocalDate.now().plusYears(1),
+                null,
+                null
         );
 
         when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
@@ -270,7 +274,7 @@ public class MovieServiceImplTest {
 
         // Solo actualiza el título, el resto queda null
         UpdateMovieRequest request = new UpdateMovieRequest(
-                "Updated Title", null, null, null, null, null
+                "Updated Title", null, null, null, null, null, null, null
         );
 
         when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
@@ -292,7 +296,7 @@ public class MovieServiceImplTest {
     void testUpdateMovieWhenMovieNotFound() {
         // Arrange
         UpdateMovieRequest request = new UpdateMovieRequest(
-                "New Title", null, null, null, null, null
+                "New Title", null, null, null, null, null, null, null
         );
 
         when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.empty());
@@ -310,39 +314,161 @@ public class MovieServiceImplTest {
         Movie movie2 = new Movie();
         movie2.setId(UUID.randomUUID());
         movie2.setTitle("The Matrix");
+        movie2.setReleaseDate(LocalDate.now().plusYears(2));
 
         Country usa = buildCountry(COUNTRY_ID_USA, "United States");
         Classification classif = buildClassification(CLASSIF_USA_ID, usa, "PG-13", 13);
 
-        Actor actor = buildActor(ACTOR_ID, "Leonardo DiCaprio");
-        actor.setUrlImage("https://img.example.com/leo.jpg");
-
-        Cast cast = new Cast();
-        cast.setMovie(movie1);
-        cast.setActor(actor);
-        cast.setCharacterName("Dom Cobb");
-
         MovieCountryInfo mci = new MovieCountryInfo();
         mci.setMovie(movie1);
         mci.setClassification(classif);
-
-        Category category = buildCategory(CATEGORY_ID, "Sci-Fi");
-        MovieCategory mc = new MovieCategory();
-        mc.setMovie(movie1);
-        mc.setCategory(category);
 
         Poster poster = new Poster();
         poster.setMovie(movie1);
         poster.setUrlImage("https://img.example.com/poster.jpg");
         poster.setMain(true);
 
+        when(movieRepository.findActiveByCountryIdWithFilters(COUNTRY_ID_USA, null, null, null))
+                .thenReturn(List.of(movie1, movie2));
+        when(movieCountryInfoRepository.findActiveByCountryAndMovieIdIn(anyList(), eq(COUNTRY_ID_USA)))
+                .thenReturn(List.of(mci));
+        when(posterRepository.findByMovie_IdIn(anyList())).thenReturn(List.of(poster));
+
+        // Act
+        List<MovieSummaryResponse> result = movieService.findAllMoviesByCountry(
+                COUNTRY_ID_USA, null, null, null, null);
+
+        // Assert
+        assertAll(
+                () -> assertEquals(2, result.size()),
+                () -> assertEquals("Inception",  result.get(0).getTitle()),
+                () -> assertEquals("The Matrix", result.get(1).getTitle()),
+                () -> assertEquals("https://img.example.com/poster.jpg", result.get(0).getPoster()),
+                () -> assertEquals(1, result.get(0).getClassifications().size()),
+                () -> assertEquals("PG-13",         result.get(0).getClassifications().get(0).getName()),
+                () -> assertEquals("United States", result.get(0).getClassifications().get(0).getCountry())
+        );
+    }
+
+    @Test
+    void testFindAllMoviesByCountryWithFilters() {
+        // Arrange
+        UUID categoryId      = CATEGORY_ID;
+        UUID classificationId = CLASSIF_USA_ID;
+
+        Movie movie1 = buildSavedMovie();
+
+        Country usa = buildCountry(COUNTRY_ID_USA, "United States");
+        Classification classif = buildClassification(CLASSIF_USA_ID, usa, "PG-13", 13);
+
+        MovieCountryInfo mci = new MovieCountryInfo();
+        mci.setMovie(movie1);
+        mci.setClassification(classif);
+
+        Poster poster = new Poster();
+        poster.setMovie(movie1);
+        poster.setUrlImage("https://img.example.com/poster.jpg");
+        poster.setMain(true);
+
+        when(movieRepository.findActiveByCountryIdWithFilters(COUNTRY_ID_USA, "Inception", categoryId, classificationId))
+                .thenReturn(List.of(movie1));
+        when(movieCountryInfoRepository.findActiveByCountryAndMovieIdIn(anyList(), eq(COUNTRY_ID_USA)))
+                .thenReturn(List.of(mci));
+        when(posterRepository.findByMovie_IdIn(anyList())).thenReturn(List.of(poster));
+
+        // Act
+        List<MovieSummaryResponse> result = movieService.findAllMoviesByCountry(
+                COUNTRY_ID_USA, "Inception", categoryId, classificationId, null);
+
+        // Assert
+        assertAll(
+                () -> assertEquals(1, result.size()),
+                () -> assertEquals("Inception", result.get(0).getTitle())
+        );
+    }
+
+    @Test
+    void testFindAllMoviesByCountrySortedByReleaseDate() {
+        // Arrange
+        Movie movie1 = buildSavedMovie();
+        movie1.setReleaseDate(LocalDate.of(2027, 6, 1));
+
+        Movie movie2 = new Movie();
+        movie2.setId(UUID.randomUUID());
+        movie2.setTitle("The Matrix");
+        movie2.setReleaseDate(LocalDate.of(2026, 1, 1));
+
+        when(movieRepository.findActiveByCountryIdWithFilters(COUNTRY_ID_USA, null, null, null))
+                .thenReturn(List.of(movie1, movie2));
+        when(movieCountryInfoRepository.findActiveByCountryAndMovieIdIn(anyList(), eq(COUNTRY_ID_USA)))
+                .thenReturn(List.of());
+        when(posterRepository.findByMovie_IdIn(anyList())).thenReturn(List.of());
+
+        // Act
+        List<MovieSummaryResponse> result = movieService.findAllMoviesByCountry(
+                COUNTRY_ID_USA, null, null, null, "releaseDate");
+
+        // Assert
+        assertAll(
+                () -> assertEquals(2, result.size()),
+                () -> assertEquals("The Matrix", result.get(0).getTitle()),
+                () -> assertEquals("Inception",  result.get(1).getTitle())
+        );
+    }
+
+    @Test
+    void testFindAllMoviesByCountryReturnsEmptyWhenNoMovies() {
+        // Arrange
+        when(movieRepository.findActiveByCountryIdWithFilters(COUNTRY_ID_USA, null, null, null))
+                .thenReturn(List.of());
+
+        // Act
+        List<MovieSummaryResponse> result = movieService.findAllMoviesByCountry(
+                COUNTRY_ID_USA, null, null, null, null);
+
+        // Assert
+        assertAll(
+                () -> assertTrue(result.isEmpty()),
+                () -> verify(movieCountryInfoRepository, never()).findActiveByCountryAndMovieIdIn(anyList(), any()),
+                () -> verify(posterRepository, never()).findByMovie_IdIn(anyList())
+        );
+    }
+
+    @Test
+    void testFindMovieById() throws Exception {
+        // Arrange
+        Movie movie = buildSavedMovie();
+
+        Country usa = buildCountry(COUNTRY_ID_USA, "United States");
+        Classification classif = buildClassification(CLASSIF_USA_ID, usa, "PG-13", 13);
+
+        Actor actor = buildActor(ACTOR_ID, "Leonardo DiCaprio");
+        Cast cast = new Cast();
+        cast.setMovie(movie);
+        cast.setActor(actor);
+        cast.setCharacterName("Dom Cobb");
+
+        MovieCountryInfo mci = new MovieCountryInfo();
+        mci.setMovie(movie);
+        mci.setClassification(classif);
+
+        Category category = buildCategory(CATEGORY_ID, "Sci-Fi");
+        MovieCategory mc = new MovieCategory();
+        mc.setMovie(movie);
+        mc.setCategory(category);
+
+        Poster poster = new Poster();
+        poster.setMovie(movie);
+        poster.setUrlImage("https://img.example.com/poster.jpg");
+        poster.setMain(true);
+
         People people = buildPeople(PEOPLE_ID, "Christopher Nolan");
         MoviePeople mp = new MoviePeople();
-        mp.setMovie(movie1);
+        mp.setMovie(movie);
         mp.setPeople(people);
         mp.setRol(RolMovieEnum.DIRECTOR);
 
-        when(movieRepository.findActiveByCountryId(COUNTRY_ID_USA)).thenReturn(List.of(movie1, movie2));
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(movie));
         when(castRepository.findWithActorByMovieIdIn(anyList())).thenReturn(List.of(cast));
         when(movieCountryInfoRepository.findActiveByCountryAndMovieIdIn(anyList(), eq(COUNTRY_ID_USA))).thenReturn(List.of(mci));
         when(movieCategoryRepository.findWithCategoryByMovieIdIn(anyList())).thenReturn(List.of(mc));
@@ -350,42 +476,105 @@ public class MovieServiceImplTest {
         when(moviePeopleRepository.findWithPeopleByMovieIdIn(anyList())).thenReturn(List.of(mp));
 
         // Act
-        List<MovieDetailResponse> result = movieService.findAllMoviesByCountry(COUNTRY_ID_USA);
+        MovieDetailResponse result = movieService.findMovieById(SAVED_MOVIE_ID, COUNTRY_ID_USA);
 
         // Assert
         assertAll(
-                () -> assertEquals(2, result.size()),
-                () -> assertEquals("Inception",  result.get(0).getTitle()),
-                () -> assertEquals("The Matrix", result.get(1).getTitle()),
-                () -> assertEquals(1, result.get(0).getCast().size()),
-                () -> assertEquals("Leonardo DiCaprio", result.get(0).getCast().get(0).getActorName()),
-                () -> assertEquals("Dom Cobb",          result.get(0).getCast().get(0).getCharacterName()),
-                () -> assertEquals(1, result.get(0).getClassifications().size()),
-                () -> assertEquals("PG-13",         result.get(0).getClassifications().get(0).getName()),
-                () -> assertEquals("United States", result.get(0).getClassifications().get(0).getCountry()),
-                () -> assertEquals(1, result.get(0).getCategories().size()),
-                () -> assertEquals("Sci-Fi", result.get(0).getCategories().get(0)),
-                () -> assertEquals(1, result.get(0).getPosters().size()),
-                () -> assertTrue(result.get(0).getPosters().get(0).isMain()),
-                () -> assertEquals(1, result.get(0).getCrew().size()),
-                () -> assertEquals(RolMovieEnum.DIRECTOR, result.get(0).getCrew().get(0).getRole())
+                () -> assertEquals("Inception", result.getTitle()),
+                () -> assertEquals(1, result.getCast().size()),
+                () -> assertEquals("Leonardo DiCaprio", result.getCast().get(0).getActorName()),
+                () -> assertEquals("Dom Cobb",          result.getCast().get(0).getCharacterName()),
+                () -> assertEquals(1, result.getClassifications().size()),
+                () -> assertEquals("PG-13",         result.getClassifications().get(0).getName()),
+                () -> assertEquals("United States", result.getClassifications().get(0).getCountry()),
+                () -> assertEquals(1, result.getCategories().size()),
+                () -> assertEquals("Sci-Fi", result.getCategories().get(0)),
+                () -> assertEquals(1, result.getPosters().size()),
+                () -> assertTrue(result.getPosters().get(0).isMain()),
+                () -> assertEquals(1, result.getCrew().size()),
+                () -> assertEquals(RolMovieEnum.DIRECTOR, result.getCrew().get(0).getRole())
         );
     }
 
     @Test
-    void testFindAllMoviesByCountryReturnsEmptyWhenNoMovies() {
+    void testFindMovieByIdWhenNotFound() {
         // Arrange
-        when(movieRepository.findActiveByCountryId(COUNTRY_ID_USA)).thenReturn(List.of());
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.empty());
+
+        // Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> movieService.findMovieById(SAVED_MOVIE_ID, COUNTRY_ID_USA));
+    }
+
+    @Test
+    void testUpdateMovieAllowFlags() throws Exception {
+        // Arrange
+        MovieServiceImplementation spy = spy(movieService);
+        ArgumentCaptor<Movie> movieCaptor = ArgumentCaptor.forClass(Movie.class);
+
+        Movie existing = new Movie();
+        existing.setId(SAVED_MOVIE_ID);
+        existing.setTitle("Inception");
+        existing.setAllowComments(true);
+        existing.setAllowRatings(true);
+
+        UpdateMovieRequest request = new UpdateMovieRequest(
+                null, null, null, null, null, null, false, false
+        );
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(existing));
+        when(movieRepository.save(any(Movie.class))).thenReturn(existing);
 
         // Act
-        List<MovieDetailResponse> result = movieService.findAllMoviesByCountry(COUNTRY_ID_USA);
+        spy.updateMovie(SAVED_MOVIE_ID, request);
 
         // Assert
         assertAll(
-                () -> assertTrue(result.isEmpty()),
-                () -> verify(castRepository, never()).findWithActorByMovieIdIn(anyList()),
-                () -> verify(movieCountryInfoRepository, never()).findActiveByCountryAndMovieIdIn(anyList(), any())
+                () -> verify(movieRepository).save(movieCaptor.capture()),
+                () -> assertFalse(movieCaptor.getValue().isAllowComments()),
+                () -> assertFalse(movieCaptor.getValue().isAllowRatings()),
+                () -> assertEquals("Inception", movieCaptor.getValue().getTitle())
         );
+    }
+
+    @Test
+    void testFindMovieAdminById() throws Exception {
+        // Arrange
+        Movie movie = buildSavedMovie();
+        movie.setTitle("Inception");
+        movie.setSynopsis("Una sinopsis");
+        movie.setDuration(148);
+        movie.setOriginalLanguage("English");
+        movie.setReleaseDate(LocalDate.of(2027, 1, 1));
+        movie.setAllowComments(true);
+        movie.setAllowRatings(false);
+
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.of(movie));
+
+        // Act
+        MovieAdminResponse result = movieService.findMovieAdminById(SAVED_MOVIE_ID);
+
+        // Assert
+        assertAll(
+                () -> assertEquals(SAVED_MOVIE_ID,     result.getId()),
+                () -> assertEquals("Inception",        result.getTitle()),
+                () -> assertEquals("Una sinopsis",     result.getSynopsis()),
+                () -> assertEquals(148,                result.getDuration()),
+                () -> assertEquals("English",          result.getOriginalLanguage()),
+                () -> assertEquals(LocalDate.of(2027, 1, 1), result.getReleaseDate()),
+                () -> assertTrue(result.isAllowComments()),
+                () -> assertFalse(result.isAllowRatings())
+        );
+    }
+
+    @Test
+    void testFindMovieAdminByIdWhenNotFound() {
+        // Arrange
+        when(movieRepository.findById(SAVED_MOVIE_ID)).thenReturn(java.util.Optional.empty());
+
+        // Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> movieService.findMovieAdminById(SAVED_MOVIE_ID));
     }
 
     private CreateMovieRequest buildRequest(

@@ -6,6 +6,7 @@ import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.people.People;
 import com.example.movies.repositories.people.PeopleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +18,13 @@ public class PeopleServiceImplementation implements PeopleService {
 
     private final PeopleRepository peopleRepository;
 
+    @Autowired
     public PeopleServiceImplementation(PeopleRepository peopleRepository) {
         this.peopleRepository = peopleRepository;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public PeopleResponse updatePeople(UUID id, UpdatePeopleRequest dto)
             throws ResourceNotFoundException, ConflictException {
         People people = peopleRepository.findById(id)
