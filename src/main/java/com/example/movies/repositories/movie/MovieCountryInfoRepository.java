@@ -18,6 +18,17 @@ public interface MovieCountryInfoRepository extends JpaRepository<MovieCountryIn
 
     List<MovieCountryInfo> findByMovie_Id(UUID movieId);
 
+    boolean existsByMovie_IdAndClassification_Id(UUID movieId, UUID classificationId);
+
+    @Query("""
+        SELECT COUNT(mci) > 0 FROM MovieCountryInfo mci
+        WHERE mci.movie.id = :movieId
+          AND mci.classification.country.id = :countryId
+    """)
+    boolean existsByMovie_IdAndCountryId(
+            @Param("movieId") UUID movieId,
+            @Param("countryId") UUID countryId);
+
     /**
      * Batch-fetches the active MovieCountryInfo for a specific country.
      * Country is JOIN FETCHed to avoid lazy loading in the DTO mapping.
