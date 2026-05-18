@@ -121,7 +121,7 @@ public class RatingServiceImplTest {
     void testUpdateRating() throws Exception {
         // Arrange
         ArgumentCaptor<MovieRating> captor = ArgumentCaptor.forClass(MovieRating.class);
-        UpdateRatingRequest request = new UpdateRatingRequest((short) 2);
+        UpdateRatingRequest request = new UpdateRatingRequest(USER_ID, (short) 2);
 
         Movie movie = buildMovie();
         MovieRating existing = buildRating(movie, (short) 5, null);
@@ -148,11 +148,28 @@ public class RatingServiceImplTest {
     @Test
     void testUpdateRatingWhenRatingNotFound() {
         // Arrange
-        UpdateRatingRequest request = new UpdateRatingRequest((short) 3);
+        UpdateRatingRequest request = new UpdateRatingRequest(USER_ID, (short) 3);
         when(ratingRepository.findById(RATING_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
+                () -> ratingService.updateRating(RATING_ID, request));
+        verify(ratingRepository, never()).save(any());
+    }
+
+    @Test
+    void testUpdateRatingWhenNotOwner() {
+        // Arrange
+        UUID anotherUser = UUID.randomUUID();
+        UpdateRatingRequest request = new UpdateRatingRequest(anotherUser, (short) 3);
+
+        Movie movie = buildMovie();
+        MovieRating existing = buildRating(movie, (short) 5, null);
+
+        when(ratingRepository.findById(RATING_ID)).thenReturn(Optional.of(existing));
+
+        // Assert — USER_ID de la calificación != anotherUser
+        assertThrows(ConflictException.class,
                 () -> ratingService.updateRating(RATING_ID, request));
         verify(ratingRepository, never()).save(any());
     }

@@ -106,7 +106,7 @@ public class CommentServiceImplTest {
         CommentServiceImplementation spy = spy(commentService);
         ArgumentCaptor<MovieComment> captor = ArgumentCaptor.forClass(MovieComment.class);
 
-        UpdateCommentRequest request = new UpdateCommentRequest("Contenido actualizado");
+        UpdateCommentRequest request = new UpdateCommentRequest(USER_ID, "Contenido actualizado");
 
         Movie movie = buildMovie();
         MovieComment existing = buildComment(movie, "Contenido original", null);
@@ -130,7 +130,7 @@ public class CommentServiceImplTest {
     @Test
     void testUpdateCommentWhenCommentNotFound() {
         // Arrange
-        UpdateCommentRequest request = new UpdateCommentRequest("Nuevo contenido");
+        UpdateCommentRequest request = new UpdateCommentRequest(USER_ID, "Nuevo contenido");
 
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.empty());
 
@@ -140,15 +140,34 @@ public class CommentServiceImplTest {
         verify(commentRepository, never()).save(any());
     }
 
+    @Test
+    void testUpdateCommentWhenNotOwner() {
+        // Arrange
+        UUID anotherUser = UUID.randomUUID();
+        UpdateCommentRequest request = new UpdateCommentRequest(anotherUser, "Intento editar");
+
+        Movie movie = buildMovie();
+        MovieComment existing = buildComment(movie, "Contenido original", null);
+
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(existing));
+
+        // Assert — USER_ID del comentario != anotherUser
+        assertThrows(ConflictException.class,
+                () -> commentService.updateComment(COMMENT_ID, request));
+        verify(commentRepository, never()).save(any());
+    }
+
     // ── deleteComment ─────────────────────────────────────────────────────
 
     @Test
     void testDeleteComment() throws Exception {
         // Arrange
-        when(commentRepository.existsById(COMMENT_ID)).thenReturn(true);
+        Movie movie = buildMovie();
+        MovieComment comment = buildComment(movie, "Contenido", null);
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(comment));
 
         // Act
-        commentService.deleteComment(COMMENT_ID);
+        commentService.deleteComment(COMMENT_ID, USER_ID);
 
         // Assert
         verify(commentRepository).deleteById(COMMENT_ID);
@@ -157,11 +176,25 @@ public class CommentServiceImplTest {
     @Test
     void testDeleteCommentWhenCommentNotFound() {
         // Arrange
-        when(commentRepository.existsById(COMMENT_ID)).thenReturn(false);
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
-                () -> commentService.deleteComment(COMMENT_ID));
+                () -> commentService.deleteComment(COMMENT_ID, USER_ID));
+        verify(commentRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void testDeleteCommentWhenNotOwner() {
+        // Arrange
+        UUID anotherUser = UUID.randomUUID();
+        Movie movie = buildMovie();
+        MovieComment comment = buildComment(movie, "Contenido", null);
+        when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.of(comment));
+
+        // Assert — USER_ID del comentario != anotherUser
+        assertThrows(ConflictException.class,
+                () -> commentService.deleteComment(COMMENT_ID, anotherUser));
         verify(commentRepository, never()).deleteById(any());
     }
 

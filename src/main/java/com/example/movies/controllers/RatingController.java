@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1/movies/{movieId}/ratings")
 public class RatingController {
 
     private final RatingService ratingService;
@@ -25,21 +24,21 @@ public class RatingController {
         this.ratingService = ratingService;
     }
 
-    @GetMapping
+    @GetMapping("/v1/movies/{movieId}/ratings")
     public ResponseEntity<RatingSummaryResponse> getRatings(@PathVariable UUID movieId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(ratingService.findRatingsByMovie(movieId));
     }
 
-    @PostMapping
+    @PostMapping("/v1/movies/{movieId}/ratings")
     public ResponseEntity<RatingSummaryResponse> createRating(@PathVariable UUID movieId, @Valid @RequestBody CreateRatingRequest request)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(ratingService.createRating(movieId, request));
     }
 
-    @PatchMapping("/{ratingId}")
+    @PatchMapping("/v1/ratings/{ratingId}")
     public ResponseEntity<RatingSummaryResponse> updateRating(@PathVariable UUID ratingId, @Valid @RequestBody UpdateRatingRequest request)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, ConflictException {
         return ResponseEntity.ok(ratingService.updateRating(ratingId, request));
     }
 }

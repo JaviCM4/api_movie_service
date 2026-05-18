@@ -55,9 +55,13 @@ public class RatingServiceImplementation implements RatingService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public RatingSummaryResponse updateRating(UUID ratingId, UpdateRatingRequest dto)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, ConflictException {
         MovieRating rating = ratingRepository.findById(ratingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rating not found with id: " + ratingId));
+
+        if (!rating.getUserId().equals(dto.getUserId())) {
+            throw new ConflictException("You don't have permission to update this rating because it was created by another user");
+        }
 
         rating.setScore(dto.getScore());
         ratingRepository.save(rating);

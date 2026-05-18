@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1/movies/{movieId}/comments")
 public class CommentController {
 
     private final CommentService commentService;
@@ -26,27 +25,27 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @GetMapping
+    @GetMapping("/v1/movies/{movieId}/comments")
     public ResponseEntity<List<CommentResponse>> getComments(@PathVariable UUID movieId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(commentService.findCommentsByMovie(movieId));
     }
 
-    @PostMapping
+    @PostMapping("/v1/movies/{movieId}/comments")
     public ResponseEntity<CommentResponse> createComment(@PathVariable UUID movieId, @Valid @RequestBody CreateCommentRequest request)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(movieId, request));
     }
 
-    @PatchMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(@PathVariable UUID commentId, @Valid @RequestBody UpdateCommentRequest request) throws ResourceNotFoundException {
+    @PatchMapping("/v1/comments/{commentId}")
+    public ResponseEntity<CommentResponse> updateComment(@PathVariable UUID commentId, @Valid @RequestBody UpdateCommentRequest request) throws ResourceNotFoundException, ConflictException {
         return ResponseEntity.ok(commentService.updateComment(commentId, request));
     }
 
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId)
-            throws ResourceNotFoundException {
-        commentService.deleteComment(commentId);
+    @DeleteMapping("/v1/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId, @RequestParam UUID userId)
+            throws ResourceNotFoundException, ConflictException {
+        commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }
 }

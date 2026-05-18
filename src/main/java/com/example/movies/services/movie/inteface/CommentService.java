@@ -13,9 +13,9 @@ public interface CommentService {
 
     CommentResponse createComment(UUID movieId, CreateCommentRequest dto) throws ResourceNotFoundException, ConflictException;
 
-    CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto) throws ResourceNotFoundException;
+    CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto) throws ResourceNotFoundException, ConflictException;
 
-    void deleteComment(UUID commentId) throws ResourceNotFoundException;
+    void deleteComment(UUID commentId, UUID userId) throws ResourceNotFoundException, ConflictException;
 
     List<CommentResponse> findCommentsByMovie(UUID movieId) throws ResourceNotFoundException;
 }

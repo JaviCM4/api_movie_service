@@ -12,7 +12,7 @@ public interface RatingService {
 
     RatingSummaryResponse createRating(UUID movieId, CreateRatingRequest dto) throws ResourceNotFoundException, ConflictException;
 
-    RatingSummaryResponse updateRating(UUID ratingId, UpdateRatingRequest dto) throws ResourceNotFoundException;
+    RatingSummaryResponse updateRating(UUID ratingId, UpdateRatingRequest dto) throws ResourceNotFoundException, ConflictException;
 
     RatingSummaryResponse findRatingsByMovie(UUID movieId) throws ResourceNotFoundException;
 }

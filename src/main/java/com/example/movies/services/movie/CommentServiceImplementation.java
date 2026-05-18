@@ -48,9 +48,13 @@ public class CommentServiceImplementation implements CommentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, ConflictException {
         MovieComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+
+        if (!comment.getUserId().equals(dto.getUserId())) {
+            throw new ConflictException("You don't have permission to update this comment because it was created by another user");
+        }
 
         comment.setContent(dto.getContent());
         return CommentResponse.from(commentRepository.save(comment));
@@ -58,11 +62,15 @@ public class CommentServiceImplementation implements CommentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void deleteComment(UUID commentId)
-            throws ResourceNotFoundException {
-        if (!commentRepository.existsById(commentId)) {
-            throw new ResourceNotFoundException("Comment not found with id: " + commentId);
+    public void deleteComment(UUID commentId, UUID userId)
+            throws ResourceNotFoundException, ConflictException {
+        MovieComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+
+        if (!comment.getUserId().equals(userId)) {
+            throw new ConflictException("You don't have permission to delete this comment because it was created by another user");
         }
+
         commentRepository.deleteById(commentId);
     }
 
