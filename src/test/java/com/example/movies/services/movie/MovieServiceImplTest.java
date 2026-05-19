@@ -6,6 +6,7 @@ import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
+import com.example.movies.kafka.MovieKafkaProducer;
 import com.example.movies.models.actor.Actor;
 import com.example.movies.models.category.Category;
 import com.example.movies.models.classification.Classification;
@@ -61,6 +62,8 @@ public class MovieServiceImplTest {
     @Mock private MoviePeopleRepository moviePeopleRepository;
     @Spy  private ResolverService resolverService;
 
+    @Mock private MovieKafkaProducer movieKafkaProducer;
+
     @InjectMocks
     private MovieServiceImplementation movieService;
 
@@ -106,7 +109,8 @@ public class MovieServiceImplTest {
                 () -> verify(castRepository).saveAll(anyList()),
                 () -> verify(movieCategoryRepository).saveAll(anyList()),
                 () -> verify(posterRepository).saveAll(anyList()),
-                () -> verify(moviePeopleRepository).saveAll(anyList())
+                () -> verify(moviePeopleRepository).saveAll(anyList()),
+                () -> verify(movieKafkaProducer).sendCreatedMovieEvent(any())
         );
     }
 
@@ -256,7 +260,8 @@ public class MovieServiceImplTest {
                 () -> assertEquals("New Title",    movieCaptor.getValue().getTitle()),
                 () -> assertEquals("New synopsis", movieCaptor.getValue().getSynopsis()),
                 () -> assertEquals(120,            movieCaptor.getValue().getDuration()),
-                () -> assertEquals("English",      movieCaptor.getValue().getOriginalLanguage())
+                () -> assertEquals("English",      movieCaptor.getValue().getOriginalLanguage()),
+                () -> verify(movieKafkaProducer).sendUpdatedMovieEvent(any())
         );
     }
 

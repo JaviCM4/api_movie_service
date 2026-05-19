@@ -4,8 +4,11 @@ import com.example.movies.dtos.movie.request.*;
 import com.example.movies.dtos.movie.response.MovieAdminResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
+import com.example.movies.events.CreatedMovieEvent;
+import com.example.movies.events.UpdatedMovieEvent;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
+import com.example.movies.kafka.MovieKafkaProducer;
 import com.example.movies.models.actor.Actor;
 import com.example.movies.models.category.Category;
 import com.example.movies.models.classification.Classification;
@@ -39,6 +42,8 @@ public class MovieServiceImplementation implements MovieService {
     private final MoviePeopleRepository moviePeopleRepository;
     private final ResolverService resolverService;
 
+    private final MovieKafkaProducer kafkaProducer;
+
     public MovieServiceImplementation(
             MovieRepository movieRepository,
             ClassificationRepository classificationRepository,
@@ -50,7 +55,7 @@ public class MovieServiceImplementation implements MovieService {
             MovieCategoryRepository movieCategoryRepository,
             PosterRepository posterRepository,
             MoviePeopleRepository moviePeopleRepository,
-            ResolverService resolverService) {
+            ResolverService resolverService, MovieKafkaProducer kafkaProducer) {
 
         this.movieRepository = movieRepository;
         this.classificationRepository = classificationRepository;
@@ -63,6 +68,7 @@ public class MovieServiceImplementation implements MovieService {
         this.posterRepository = posterRepository;
         this.moviePeopleRepository = moviePeopleRepository;
         this.resolverService = resolverService;
+        this.kafkaProducer = kafkaProducer;
     }
 
     @Override
@@ -91,6 +97,11 @@ public class MovieServiceImplementation implements MovieService {
         saveMovieCategories(movie, categories);
         savePosters(movie, dto.getPosters());
         saveMoviePeople(movie, peoples, peopleRequests);
+
+        //Publicamos el evento de creacion de la pelicula
+        CreatedMovieEvent event = CreatedMovieEvent.from(movie.getId(), movie.getTitle());
+        kafkaProducer.sendCreatedMovieEvent(event);
+
     }
 
     @Override
@@ -110,6 +121,10 @@ public class MovieServiceImplementation implements MovieService {
         if (dto.getAllowRatings() != null) movie.setAllowRatings(dto.getAllowRatings());
 
         movieRepository.save(movie);
+
+        //Publicamos el evento de actualizacion
+        UpdatedMovieEvent event = UpdatedMovieEvent.from(movie.getId(), movie.getTitle());
+        kafkaProducer.sendUpdatedMovieEvent(event);
     }
 
     @Override
