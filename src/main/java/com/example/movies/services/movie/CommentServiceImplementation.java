@@ -1,5 +1,6 @@
 package com.example.movies.services.movie;
 
+import com.example.movies.client.tickets.TicketsClient;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
@@ -22,11 +23,13 @@ public class CommentServiceImplementation implements CommentService {
 
     private final MovieCommentRepository commentRepository;
     private final MovieRepository movieRepository;
+    private final TicketsClient ticketsClient;
 
     @Autowired
-    public CommentServiceImplementation(MovieCommentRepository commentRepository, MovieRepository movieRepository) {
+    public CommentServiceImplementation(MovieCommentRepository commentRepository, MovieRepository movieRepository, TicketsClient ticketsClient) {
         this.commentRepository = commentRepository;
         this.movieRepository = movieRepository;
+        this.ticketsClient = ticketsClient;
     }
 
     @Override
@@ -38,6 +41,11 @@ public class CommentServiceImplementation implements CommentService {
 
         if (!movie.isAllowComments()) {
             throw new ConflictException("Comments are not allowed for this movie");
+        }
+
+        //Validar que el usuario ya tenga (haya visto la pelicula) una entrada para la pelicula antes de permitirle comentar
+        if (!ticketsClient.hasTicketsByMovieAndUser(movieId, dto.getUserId())) {
+            throw new ConflictException("You cannot comment on this movie because you haven't bought tickets for it");
         }
 
         MovieComment comment = dto.createEntity();

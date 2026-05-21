@@ -1,5 +1,6 @@
 package com.example.movies.services.movie;
 
+import com.example.movies.client.tickets.TicketsClient;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
@@ -34,6 +35,7 @@ public class CommentServiceImplTest {
 
     @Mock private MovieCommentRepository commentRepository;
     @Mock private MovieRepository        movieRepository;
+    @Mock private TicketsClient ticketsClient;
 
     @InjectMocks
     private CommentServiceImplementation commentService;
@@ -52,6 +54,7 @@ public class CommentServiceImplTest {
         MovieComment saved = buildComment(movie, "Excelente película", null);
 
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(movie));
+        when(ticketsClient.hasTicketsByMovieAndUser(MOVIE_ID, USER_ID)).thenReturn(true);
         when(commentRepository.save(any(MovieComment.class))).thenReturn(saved);
 
         // Act
@@ -65,7 +68,8 @@ public class CommentServiceImplTest {
                 () -> assertEquals(COMMENT_ID,            result.getId()),
                 () -> assertEquals(USER_ID,               result.getUserId()),
                 () -> assertEquals("Excelente película", result.getContent()),
-                () -> assertFalse(result.isEdited())
+                () -> assertFalse(result.isEdited()),
+                () -> verify(ticketsClient).hasTicketsByMovieAndUser(MOVIE_ID, USER_ID)
         );
     }
 
@@ -96,6 +100,23 @@ public class CommentServiceImplTest {
         assertThrows(ConflictException.class,
                 () -> commentService.createComment(MOVIE_ID, request));
         verify(commentRepository, never()).save(any());
+    }
+
+    @Test
+    void testCreateCommentWhenUserHasNoTickets() {
+        // Arrange
+        CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
+
+        Movie movie = buildMovie();
+
+        when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.of(movie));
+        when(ticketsClient.hasTicketsByMovieAndUser(MOVIE_ID, USER_ID)).thenReturn(false);
+
+        // Assert
+        assertThrows(ConflictException.class,
+                () -> commentService.createComment(MOVIE_ID, request));
+        verify(commentRepository, never()).save(any());
+        verify(ticketsClient).hasTicketsByMovieAndUser(MOVIE_ID, USER_ID);
     }
 
     // ── updateComment ─────────────────────────────────────────────────────
