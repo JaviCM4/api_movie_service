@@ -115,6 +115,51 @@ public class MovieServiceImplTest {
     }
 
     @Test
+    void testCreateMovie_WhenKafkaFails_MovieIsStillSaved() throws Exception {
+        // Arrange
+        CreateMovieRequest request = buildRequest(
+                List.of(CLASSIF_USA_ID, CLASSIF_MX_ID),
+                List.of(new AssignActorRequest(ACTOR_ID, "Dom Cobb")),
+                List.of(CATEGORY_ID),
+                List.of(new CreatePosterRequest("https://img.example.com/poster.jpg", true)),
+                List.of(new AssignPeopleRequest(PEOPLE_ID, RolMovieEnum.DIRECTOR))
+        );
+
+        Movie savedMovie = buildSavedMovie();
+
+        when(classificationRepository.findWithCountryByIdIn(anyList())).thenReturn(List.of(
+                buildClassification(CLASSIF_USA_ID, buildCountry(COUNTRY_ID_USA, "United States"), "PG-13", 13),
+                buildClassification(CLASSIF_MX_ID, buildCountry(COUNTRY_ID_MX, "Mexico"), "B", 12)));
+        when(actorRepository.findAllById(anyList())).thenReturn(List.of(buildActor(ACTOR_ID, "Leonardo DiCaprio")));
+        when(categoryRepository.findAllById(anyList())).thenReturn(List.of(buildCategory(CATEGORY_ID, "Sci-Fi")));
+        when(peopleRepository.findAllById(anyList())).thenReturn(List.of(buildPeople(PEOPLE_ID, "Christopher Nolan")));
+        when(movieRepository.save(any(Movie.class))).thenReturn(savedMovie);
+        when(movieCountryInfoRepository.saveAll(anyList())).thenReturn(List.of());
+        when(castRepository.saveAll(anyList())).thenReturn(List.of());
+        when(movieCategoryRepository.saveAll(anyList())).thenReturn(List.of());
+        when(posterRepository.saveAll(anyList())).thenReturn(List.of());
+        when(moviePeopleRepository.saveAll(anyList())).thenReturn(List.of());
+
+        // Kafka falla
+        doThrow(new RuntimeException("Kafka no disponible"))
+                .when(movieKafkaProducer).sendCreatedMovieEvent(any());
+
+        // Act — no debe lanzar excepción aunque Kafka falle
+        assertDoesNotThrow(() -> movieService.createMovie(request));
+
+        // Assert — la película igual se guardó
+        assertAll(
+                () -> verify(movieRepository).save(any(Movie.class)),
+                () -> verify(movieCountryInfoRepository).saveAll(anyList()),
+                () -> verify(castRepository).saveAll(anyList()),
+                () -> verify(movieCategoryRepository).saveAll(anyList()),
+                () -> verify(posterRepository).saveAll(anyList()),
+                () -> verify(moviePeopleRepository).saveAll(anyList()),
+                () -> verify(movieKafkaProducer).sendCreatedMovieEvent(any())
+        );
+    }
+
+    @Test
     void testCreateMovieSavesTwoMovieCountryInfos() throws Exception {
         // Arrange
         MovieServiceImplementation spy = spy(movieService);

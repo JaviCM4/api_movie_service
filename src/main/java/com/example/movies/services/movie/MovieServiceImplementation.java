@@ -21,6 +21,7 @@ import com.example.movies.repositories.movie.*;
 import com.example.movies.repositories.people.PeopleRepository;
 import com.example.movies.services.movie.inteface.MovieService;
 import com.example.movies.services.utils.ResolverService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 @Service
+@Slf4j
 public class MovieServiceImplementation implements MovieService {
 
     private final MovieRepository movieRepository;
@@ -99,8 +101,12 @@ public class MovieServiceImplementation implements MovieService {
         saveMoviePeople(movie, peoples, peopleRequests);
 
         //Publicamos el evento de creacion de la pelicula
-        CreatedMovieEvent event = CreatedMovieEvent.from(movie.getId(), movie.getTitle());
-        kafkaProducer.sendCreatedMovieEvent(event);
+        try {
+            CreatedMovieEvent event = CreatedMovieEvent.from(movie.getId(), movie.getTitle());
+            kafkaProducer.sendCreatedMovieEvent(event);
+        } catch (Exception e) {
+            log.error("Error al publicar evento de creacion de pelicula id={}: {}", movie.getId(), e.getMessage());
+        }
 
     }
 
@@ -123,8 +129,12 @@ public class MovieServiceImplementation implements MovieService {
         movieRepository.save(movie);
 
         //Publicamos el evento de actualizacion
-        UpdatedMovieEvent event = UpdatedMovieEvent.from(movie.getId(), movie.getTitle());
-        kafkaProducer.sendUpdatedMovieEvent(event);
+        try {
+            UpdatedMovieEvent event = UpdatedMovieEvent.from(movie.getId(), movie.getTitle());
+            kafkaProducer.sendUpdatedMovieEvent(event);
+        }catch (Exception e) {
+            log.error("Error al publicar evento de actualizacion de pelicula id={}: {}", movie.getId(), e.getMessage());
+        }
     }
 
     @Override
