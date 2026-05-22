@@ -8,6 +8,7 @@ import com.example.movies.services.people.PeopleService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,11 +26,13 @@ public class PeopleController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<PeopleResponse>> getAll() {
         return ResponseEntity.ok(peopleService.findAll());
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<PeopleResponse> updatePeople(
             @PathVariable UUID id,
             @Valid @RequestBody UpdatePeopleRequest request) throws ConflictException, ResourceNotFoundException {

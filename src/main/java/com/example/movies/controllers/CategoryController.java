@@ -9,6 +9,7 @@ import com.example.movies.services.category.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,18 +33,21 @@ public class CategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CreateCategoryRequest request)
             throws ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable UUID id, @Valid @RequestBody UpdateCategoryRequest request)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
     @PatchMapping("/{id}/toggle")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CategoryResponse> toggleActive(@PathVariable UUID id)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.toggleActive(id));

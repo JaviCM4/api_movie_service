@@ -9,6 +9,7 @@ import com.example.movies.services.movie.inteface.CastService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class CastController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<CastResponse>> addActor(@PathVariable UUID movieId,
                                                         @Valid @RequestBody CreateCastRequest request)
             throws ResourceNotFoundException, ConflictException {
@@ -40,6 +42,7 @@ public class CastController {
     }
 
     @PatchMapping("/{castId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CastResponse> updateCharacterName(@PathVariable UUID movieId,
                                                              @PathVariable UUID castId,
                                                              @Valid @RequestBody UpdateCastRequest request)
@@ -48,6 +51,7 @@ public class CastController {
     }
 
     @DeleteMapping("/{castId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<CastResponse>> removeActor(@PathVariable UUID movieId,
                                                            @PathVariable UUID castId)
             throws ResourceNotFoundException {

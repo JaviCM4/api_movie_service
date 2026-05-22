@@ -39,9 +39,9 @@ public interface MovieRepository extends JpaRepository<Movie, UUID> {
             SELECT mci.movie.id FROM MovieCountryInfo mci
             WHERE mci.isActive = true AND mci.classification.country.id = :countryId
         )
-        AND (:title IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', :title, '%')))
-        AND (:categoryId IS NULL OR mc.category.id = :categoryId)
-        AND (:classificationId IS NULL OR m.id IN (
+        AND (CAST(:title AS String) IS NULL OR LOWER(m.title) LIKE LOWER(CONCAT('%', CAST(:title AS String), '%')))
+        AND (CAST(:categoryId AS String) IS NULL OR mc.category.id = :categoryId)
+        AND (CAST(:classificationId AS String) IS NULL OR m.id IN (
             SELECT mci2.movie.id FROM MovieCountryInfo mci2
             WHERE mci2.isActive = true
               AND mci2.classification.country.id = :countryId

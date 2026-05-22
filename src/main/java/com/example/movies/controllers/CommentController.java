@@ -10,6 +10,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,19 +35,34 @@ public class CommentController {
     }
 
     @PostMapping("/v1/movies/{movieId}/comments")
-    public ResponseEntity<CommentResponse> createComment(@PathVariable UUID movieId, @Valid @RequestBody CreateCommentRequest request)
-            throws ConflictException, ResourceNotFoundException {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(movieId, request));
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<CommentResponse> createComment(
+            @PathVariable UUID movieId,
+            @Valid @RequestBody CreateCommentRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) throws ConflictException, ResourceNotFoundException {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createComment(movieId, userId, request));
     }
 
     @PatchMapping("/v1/comments/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(@PathVariable UUID commentId, @Valid @RequestBody UpdateCommentRequest request) throws ResourceNotFoundException, ConflictException {
-        return ResponseEntity.ok(commentService.updateComment(commentId, request));
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<CommentResponse> updateComment(
+            @PathVariable UUID commentId,
+            @Valid @RequestBody UpdateCommentRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) throws ResourceNotFoundException, ConflictException {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(commentService.updateComment(commentId, userId, request));
     }
 
     @DeleteMapping("/v1/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId, @RequestParam UUID userId)
-            throws ResourceNotFoundException, ConflictException {
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable UUID commentId,
+            @AuthenticationPrincipal Jwt jwt
+    ) throws ResourceNotFoundException, ConflictException {
+        UUID userId = UUID.fromString(jwt.getSubject());
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
     }

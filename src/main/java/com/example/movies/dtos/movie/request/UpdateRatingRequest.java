@@ -5,13 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Value;
 
-import java.util.UUID;
-
 @Value
 public class UpdateRatingRequest {
-
-    @NotNull
-    UUID userId;
 
     @NotNull
     @Min(1)

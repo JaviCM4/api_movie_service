@@ -9,6 +9,7 @@ import com.example.movies.services.movie.inteface.MoviePeopleService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class MoviePeopleController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<MoviePeopleResponse>> addPerson(@PathVariable UUID movieId,
                                                                @Valid @RequestBody AssignPeopleRequest request)
             throws ResourceNotFoundException, ConflictException {
@@ -40,6 +42,7 @@ public class MoviePeopleController {
     }
 
     @PatchMapping("/{moviePeopleId}/rol")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<MoviePeopleResponse>> updateRol(@PathVariable UUID movieId,
                                                                @PathVariable UUID moviePeopleId,
                                                                @RequestParam RolMovieEnum rol)
@@ -48,6 +51,7 @@ public class MoviePeopleController {
     }
 
     @DeleteMapping("/{moviePeopleId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<MoviePeopleResponse>> removePerson(@PathVariable UUID movieId,
                                                                    @PathVariable UUID moviePeopleId)
             throws ResourceNotFoundException {

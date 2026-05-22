@@ -12,14 +12,11 @@ import java.util.UUID;
 public class CreateRatingRequest {
 
     @NotNull
-    UUID userId;
-
-    @NotNull
     @Min(1)
     @Max(5)
     Short score;
 
-    public MovieRating createEntity() {
+    public MovieRating createEntity(UUID userId) {
         MovieRating rating = new MovieRating();
         rating.setUserId(userId);
         rating.setScore(score);

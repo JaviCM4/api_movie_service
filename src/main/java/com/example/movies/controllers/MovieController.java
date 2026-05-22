@@ -11,6 +11,7 @@ import com.example.movies.services.movie.inteface.MovieService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +46,7 @@ public class MovieController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<Void> createMovie(@Valid @RequestBody CreateMovieRequest request)
             throws ConflictException, ResourceNotFoundException {
         movieService.createMovie(request);
@@ -52,12 +54,14 @@ public class MovieController {
     }
 
     @GetMapping("/{movieId}/admin")
+    @PreAuthorize("hasRole( 'SYSTEM_ADMIN')")
     public ResponseEntity<MovieAdminResponse> getMovieAdmin(@PathVariable UUID movieId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(movieService.findMovieAdminById(movieId));
     }
 
     @PatchMapping("/{movieId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<Void> updateMovie(@PathVariable UUID movieId, @Valid @RequestBody UpdateMovieRequest request)
             throws ResourceNotFoundException {
         movieService.updateMovie(movieId, request);

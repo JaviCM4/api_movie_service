@@ -1,6 +1,7 @@
 package com.example.movies.services.movie;
 
 import com.example.movies.client.tickets.TicketsClient;
+import com.example.movies.client.users.UserClient;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
@@ -24,17 +25,20 @@ public class CommentServiceImplementation implements CommentService {
     private final MovieCommentRepository commentRepository;
     private final MovieRepository movieRepository;
     private final TicketsClient ticketsClient;
+    private final UserClient userClient;
 
     @Autowired
-    public CommentServiceImplementation(MovieCommentRepository commentRepository, MovieRepository movieRepository, TicketsClient ticketsClient) {
+    public CommentServiceImplementation(MovieCommentRepository commentRepository, MovieRepository movieRepository,
+                                        TicketsClient ticketsClient, UserClient userClient) {
         this.commentRepository = commentRepository;
         this.movieRepository = movieRepository;
         this.ticketsClient = ticketsClient;
+        this.userClient = userClient;
     }
 
     @Override
     @Transactional
-    public CommentResponse createComment(UUID movieId, CreateCommentRequest dto)
+    public CommentResponse createComment(UUID movieId, UUID userId, CreateCommentRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
@@ -44,28 +48,30 @@ public class CommentServiceImplementation implements CommentService {
         }
 
         //Validar que el usuario ya tenga (haya visto la pelicula) una entrada para la pelicula antes de permitirle comentar
-        if (!ticketsClient.hasTicketsByMovieAndUser(movieId, dto.getUserId())) {
+        if (!ticketsClient.hasTicketsByMovieAndUser(movieId, userId)) {
             throw new ConflictException("You cannot comment on this movie because you haven't bought tickets for it");
         }
 
-        MovieComment comment = dto.createEntity();
+        MovieComment comment = dto.createEntity(userId);
         comment.setMovie(movie);
-        return CommentResponse.from(commentRepository.save(comment));
+        MovieComment saved = commentRepository.save(comment);
+        return CommentResponse.from(saved, userClient.getUserName(userId));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto)
+    public CommentResponse updateComment(UUID commentId, UUID userId, UpdateCommentRequest dto)
             throws ResourceNotFoundException, ConflictException {
         MovieComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
 
-        if (!comment.getUserId().equals(dto.getUserId())) {
+        if (!comment.getUserId().equals(userId)) {
             throw new ConflictException("You don't have permission to update this comment because it was created by another user");
         }
 
         comment.setContent(dto.getContent());
-        return CommentResponse.from(commentRepository.save(comment));
+        MovieComment saved = commentRepository.save(comment);
+        return CommentResponse.from(saved, userClient.getUserName(userId));
     }
 
     @Override
@@ -91,7 +97,7 @@ public class CommentServiceImplementation implements CommentService {
         }
         return commentRepository.findByMovie_IdOrderByCreatedAtDesc(movieId)
                 .stream()
-                .map(CommentResponse::from)
+                .map(comment -> CommentResponse.from(comment, userClient.getUserName(comment.getUserId())))
                 .toList();
     }
 }

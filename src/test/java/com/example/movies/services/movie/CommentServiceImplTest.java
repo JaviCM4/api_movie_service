@@ -1,6 +1,7 @@
 package com.example.movies.services.movie;
 
 import com.example.movies.client.tickets.TicketsClient;
+import com.example.movies.client.users.UserClient;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
@@ -35,7 +36,8 @@ public class CommentServiceImplTest {
 
     @Mock private MovieCommentRepository commentRepository;
     @Mock private MovieRepository        movieRepository;
-    @Mock private TicketsClient ticketsClient;
+    @Mock private TicketsClient          ticketsClient;
+    @Mock private UserClient             userClient;
 
     @InjectMocks
     private CommentServiceImplementation commentService;
@@ -48,7 +50,7 @@ public class CommentServiceImplTest {
         CommentServiceImplementation spy = spy(commentService);
         ArgumentCaptor<MovieComment> captor = ArgumentCaptor.forClass(MovieComment.class);
 
-        CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
+        CreateCommentRequest request = new CreateCommentRequest("Excelente película");
 
         Movie movie = buildMovie();
         MovieComment saved = buildComment(movie, "Excelente película", null);
@@ -58,7 +60,7 @@ public class CommentServiceImplTest {
         when(commentRepository.save(any(MovieComment.class))).thenReturn(saved);
 
         // Act
-        CommentResponse result = spy.createComment(MOVIE_ID, request);
+        CommentResponse result = spy.createComment(MOVIE_ID, USER_ID, request);
 
         // Assert
         assertAll(
@@ -76,20 +78,20 @@ public class CommentServiceImplTest {
     @Test
     void testCreateCommentWhenMovieNotFound() {
         // Arrange
-        CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
+        CreateCommentRequest request = new CreateCommentRequest("Excelente película");
 
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
-                () -> commentService.createComment(MOVIE_ID, request));
+                () -> commentService.createComment(MOVIE_ID, USER_ID, request));
         verify(commentRepository, never()).save(any());
     }
 
     @Test
     void testCreateCommentWhenCommentsNotAllowed() {
         // Arrange
-        CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
+        CreateCommentRequest request = new CreateCommentRequest("Excelente película");
 
         Movie movie = buildMovie();
         movie.setAllowComments(false);
@@ -98,14 +100,14 @@ public class CommentServiceImplTest {
 
         // Assert
         assertThrows(ConflictException.class,
-                () -> commentService.createComment(MOVIE_ID, request));
+                () -> commentService.createComment(MOVIE_ID, USER_ID, request));
         verify(commentRepository, never()).save(any());
     }
 
     @Test
     void testCreateCommentWhenUserHasNoTickets() {
         // Arrange
-        CreateCommentRequest request = new CreateCommentRequest(USER_ID, "Excelente película");
+        CreateCommentRequest request = new CreateCommentRequest("Excelente película");
 
         Movie movie = buildMovie();
 
@@ -114,7 +116,7 @@ public class CommentServiceImplTest {
 
         // Assert
         assertThrows(ConflictException.class,
-                () -> commentService.createComment(MOVIE_ID, request));
+                () -> commentService.createComment(MOVIE_ID, USER_ID, request));
         verify(commentRepository, never()).save(any());
         verify(ticketsClient).hasTicketsByMovieAndUser(MOVIE_ID, USER_ID);
     }
@@ -127,7 +129,7 @@ public class CommentServiceImplTest {
         CommentServiceImplementation spy = spy(commentService);
         ArgumentCaptor<MovieComment> captor = ArgumentCaptor.forClass(MovieComment.class);
 
-        UpdateCommentRequest request = new UpdateCommentRequest(USER_ID, "Contenido actualizado");
+        UpdateCommentRequest request = new UpdateCommentRequest("Contenido actualizado");
 
         Movie movie = buildMovie();
         MovieComment existing = buildComment(movie, "Contenido original", null);
@@ -137,7 +139,7 @@ public class CommentServiceImplTest {
         when(commentRepository.save(any(MovieComment.class))).thenReturn(updated);
 
         // Act
-        CommentResponse result = spy.updateComment(COMMENT_ID, request);
+        CommentResponse result = spy.updateComment(COMMENT_ID, USER_ID, request);
 
         // Assert
         assertAll(
@@ -151,13 +153,13 @@ public class CommentServiceImplTest {
     @Test
     void testUpdateCommentWhenCommentNotFound() {
         // Arrange
-        UpdateCommentRequest request = new UpdateCommentRequest(USER_ID, "Nuevo contenido");
+        UpdateCommentRequest request = new UpdateCommentRequest("Nuevo contenido");
 
         when(commentRepository.findById(COMMENT_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
-                () -> commentService.updateComment(COMMENT_ID, request));
+                () -> commentService.updateComment(COMMENT_ID, USER_ID, request));
         verify(commentRepository, never()).save(any());
     }
 
@@ -165,7 +167,7 @@ public class CommentServiceImplTest {
     void testUpdateCommentWhenNotOwner() {
         // Arrange
         UUID anotherUser = UUID.randomUUID();
-        UpdateCommentRequest request = new UpdateCommentRequest(anotherUser, "Intento editar");
+        UpdateCommentRequest request = new UpdateCommentRequest("Intento editar");
 
         Movie movie = buildMovie();
         MovieComment existing = buildComment(movie, "Contenido original", null);
@@ -174,7 +176,7 @@ public class CommentServiceImplTest {
 
         // Assert — USER_ID del comentario != anotherUser
         assertThrows(ConflictException.class,
-                () -> commentService.updateComment(COMMENT_ID, request));
+                () -> commentService.updateComment(COMMENT_ID, anotherUser, request));
         verify(commentRepository, never()).save(any());
     }
 

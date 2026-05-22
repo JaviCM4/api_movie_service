@@ -9,6 +9,7 @@ import com.example.movies.services.movie.inteface.PosterService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,18 +28,21 @@ public class PosterController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<PosterResponse>> addPoster(@PathVariable UUID movieId, @Valid @RequestBody CreatePosterRequest request)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(posterService.addPoster(movieId, request));
     }
 
     @PatchMapping("/main")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<PosterResponse>> setMainPoster(@PathVariable UUID movieId, @Valid @RequestBody UpdatePosterRequest request)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(posterService.setMainPoster(movieId, request));
     }
 
     @DeleteMapping("/{posterId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<PosterResponse>> deletePoster(@PathVariable UUID movieId, @PathVariable UUID posterId)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(posterService.deletePoster(posterId));

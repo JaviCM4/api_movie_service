@@ -8,6 +8,7 @@ import com.example.movies.services.movie.inteface.MovieCategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,12 +27,14 @@ public class MovieCategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<CategoryResponse>> addCategory(@PathVariable UUID movieId, @Valid @RequestBody MovieCategoryRequest request)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(movieCategoryService.addCategory(movieId, request.getCategoryId()));
     }
 
     @DeleteMapping("/{categoryId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<CategoryResponse>> removeCategory(@PathVariable UUID movieId, @PathVariable UUID categoryId)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(movieCategoryService.removeCategory(movieId, categoryId));

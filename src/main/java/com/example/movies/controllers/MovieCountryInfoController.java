@@ -6,6 +6,7 @@ import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.services.movie.inteface.MovieCountryInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,12 +25,14 @@ public class MovieCountryInfoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<MovieCountryInfoResponse>> getCountryInfo(@PathVariable UUID movieId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(movieCountryInfoService.getCountryInfo(movieId));
     }
 
     @PostMapping("/{classificationId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<MovieCountryInfoResponse>> addClassification(@PathVariable UUID movieId,
                                                                              @PathVariable UUID classificationId)
             throws ResourceNotFoundException, ConflictException {
@@ -38,6 +41,7 @@ public class MovieCountryInfoController {
     }
 
     @PatchMapping("/{movieCountryInfoId}/toggle")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<MovieCountryInfoResponse> toggleActive(@PathVariable UUID movieId,
                                                                   @PathVariable UUID movieCountryInfoId)
             throws ResourceNotFoundException {
@@ -45,6 +49,7 @@ public class MovieCountryInfoController {
     }
 
     @DeleteMapping("/{movieCountryInfoId}")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<MovieCountryInfoResponse>> removeClassification(@PathVariable UUID movieId,
                                                                                 @PathVariable UUID movieCountryInfoId)
             throws ResourceNotFoundException {

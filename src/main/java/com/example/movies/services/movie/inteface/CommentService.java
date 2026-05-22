@@ -11,9 +11,9 @@ import java.util.UUID;
 
 public interface CommentService {
 
-    CommentResponse createComment(UUID movieId, CreateCommentRequest dto) throws ResourceNotFoundException, ConflictException;
+    CommentResponse createComment(UUID movieId, UUID userId, CreateCommentRequest dto) throws ResourceNotFoundException, ConflictException;
 
-    CommentResponse updateComment(UUID commentId, UpdateCommentRequest dto) throws ResourceNotFoundException, ConflictException;
+    CommentResponse updateComment(UUID commentId, UUID userId, UpdateCommentRequest dto) throws ResourceNotFoundException, ConflictException;
 
     void deleteComment(UUID commentId, UUID userId) throws ResourceNotFoundException, ConflictException;
 

@@ -1,5 +1,6 @@
 package com.example.movies.services.movie;
 
+import com.example.movies.client.users.UserClient;
 import com.example.movies.dtos.movie.request.CreateRatingRequest;
 import com.example.movies.dtos.movie.request.UpdateRatingRequest;
 import com.example.movies.dtos.movie.response.RatingSummaryResponse;
@@ -34,6 +35,7 @@ public class RatingServiceImplTest {
 
     @Mock private MovieRatingRepository ratingRepository;
     @Mock private MovieRepository       movieRepository;
+    @Mock private UserClient            userClient;
 
     @InjectMocks
     private RatingServiceImplementation ratingService;
@@ -44,7 +46,7 @@ public class RatingServiceImplTest {
     void testCreateRating() throws Exception {
         // Arrange
         ArgumentCaptor<MovieRating> captor = ArgumentCaptor.forClass(MovieRating.class);
-        CreateRatingRequest request = new CreateRatingRequest(USER_ID, (short) 4);
+        CreateRatingRequest request = new CreateRatingRequest((short) 4);
 
         Movie movie = buildMovie();
         MovieRating saved = buildRating(movie, (short) 4, null);
@@ -56,7 +58,7 @@ public class RatingServiceImplTest {
         when(ratingRepository.findAverageScoreByMovie_Id(MOVIE_ID)).thenReturn(4.0);
 
         // Act
-        RatingSummaryResponse result = ratingService.createRating(MOVIE_ID, request);
+        RatingSummaryResponse result = ratingService.createRating(MOVIE_ID, USER_ID, request);
 
         // Assert
         assertAll(
@@ -73,19 +75,19 @@ public class RatingServiceImplTest {
     @Test
     void testCreateRatingWhenMovieNotFound() {
         // Arrange
-        CreateRatingRequest request = new CreateRatingRequest(USER_ID, (short) 3);
+        CreateRatingRequest request = new CreateRatingRequest((short) 3);
         when(movieRepository.findById(MOVIE_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
-                () -> ratingService.createRating(MOVIE_ID, request));
+                () -> ratingService.createRating(MOVIE_ID, USER_ID, request));
         verify(ratingRepository, never()).save(any());
     }
 
     @Test
     void testCreateRatingWhenRatingsNotAllowed() {
         // Arrange
-        CreateRatingRequest request = new CreateRatingRequest(USER_ID, (short) 3);
+        CreateRatingRequest request = new CreateRatingRequest((short) 3);
 
         Movie movie = buildMovie();
         movie.setAllowRatings(false);
@@ -94,14 +96,14 @@ public class RatingServiceImplTest {
 
         // Assert
         assertThrows(ConflictException.class,
-                () -> ratingService.createRating(MOVIE_ID, request));
+                () -> ratingService.createRating(MOVIE_ID, USER_ID, request));
         verify(ratingRepository, never()).save(any());
     }
 
     @Test
     void testCreateRatingWhenAlreadyRated() {
         // Arrange
-        CreateRatingRequest request = new CreateRatingRequest(USER_ID, (short) 3);
+        CreateRatingRequest request = new CreateRatingRequest((short) 3);
 
         Movie movie = buildMovie();
         MovieRating existing = buildRating(movie, (short) 5, null);
@@ -111,7 +113,7 @@ public class RatingServiceImplTest {
 
         // Assert
         assertThrows(ConflictException.class,
-                () -> ratingService.createRating(MOVIE_ID, request));
+                () -> ratingService.createRating(MOVIE_ID, USER_ID, request));
         verify(ratingRepository, never()).save(any());
     }
 
@@ -121,7 +123,7 @@ public class RatingServiceImplTest {
     void testUpdateRating() throws Exception {
         // Arrange
         ArgumentCaptor<MovieRating> captor = ArgumentCaptor.forClass(MovieRating.class);
-        UpdateRatingRequest request = new UpdateRatingRequest(USER_ID, (short) 2);
+        UpdateRatingRequest request = new UpdateRatingRequest((short) 2);
 
         Movie movie = buildMovie();
         MovieRating existing = buildRating(movie, (short) 5, null);
@@ -133,7 +135,7 @@ public class RatingServiceImplTest {
         when(ratingRepository.findAverageScoreByMovie_Id(MOVIE_ID)).thenReturn(2.0);
 
         // Act
-        RatingSummaryResponse result = ratingService.updateRating(RATING_ID, request);
+        RatingSummaryResponse result = ratingService.updateRating(RATING_ID, USER_ID, request);
 
         // Assert
         assertAll(
@@ -148,12 +150,12 @@ public class RatingServiceImplTest {
     @Test
     void testUpdateRatingWhenRatingNotFound() {
         // Arrange
-        UpdateRatingRequest request = new UpdateRatingRequest(USER_ID, (short) 3);
+        UpdateRatingRequest request = new UpdateRatingRequest((short) 3);
         when(ratingRepository.findById(RATING_ID)).thenReturn(Optional.empty());
 
         // Assert
         assertThrows(ResourceNotFoundException.class,
-                () -> ratingService.updateRating(RATING_ID, request));
+                () -> ratingService.updateRating(RATING_ID, USER_ID, request));
         verify(ratingRepository, never()).save(any());
     }
 
@@ -161,7 +163,7 @@ public class RatingServiceImplTest {
     void testUpdateRatingWhenNotOwner() {
         // Arrange
         UUID anotherUser = UUID.randomUUID();
-        UpdateRatingRequest request = new UpdateRatingRequest(anotherUser, (short) 3);
+        UpdateRatingRequest request = new UpdateRatingRequest((short) 3);
 
         Movie movie = buildMovie();
         MovieRating existing = buildRating(movie, (short) 5, null);
@@ -170,7 +172,7 @@ public class RatingServiceImplTest {
 
         // Assert — USER_ID de la calificación != anotherUser
         assertThrows(ConflictException.class,
-                () -> ratingService.updateRating(RATING_ID, request));
+                () -> ratingService.updateRating(RATING_ID, anotherUser, request));
         verify(ratingRepository, never()).save(any());
     }
 
