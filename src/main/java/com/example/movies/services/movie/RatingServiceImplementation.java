@@ -39,14 +39,14 @@ public class RatingServiceImplementation implements RatingService {
     public RatingSummaryResponse createRating(UUID movieId, UUID userId, CreateRatingRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         if (!movie.isAllowRatings()) {
-            throw new ConflictException("Ratings are not allowed for this movie");
+            throw new ConflictException("Las calificaciones no están permitidas para esta película");
         }
 
         if (ratingRepository.findByMovie_IdAndUserId(movieId, userId).isPresent()) {
-            throw new ConflictException("User already rated this movie");
+            throw new ConflictException("El usuario ya calificó esta película");
         }
 
         MovieRating rating = dto.createEntity(userId);
@@ -61,10 +61,10 @@ public class RatingServiceImplementation implements RatingService {
     public RatingSummaryResponse updateRating(UUID ratingId, UUID userId, UpdateRatingRequest dto)
             throws ResourceNotFoundException, ConflictException {
         MovieRating rating = ratingRepository.findById(ratingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rating not found with id: " + ratingId));
+                .orElseThrow(() -> new ResourceNotFoundException("Calificación no encontrada con id: " + ratingId));
 
         if (!rating.getUserId().equals(userId)) {
-            throw new ConflictException("You don't have permission to update this rating because it was created by another user");
+            throw new ConflictException("No tienes permiso para modificar esta calificación porque fue creada por otro usuario");
         }
 
         rating.setScore(dto.getScore());
@@ -78,7 +78,7 @@ public class RatingServiceImplementation implements RatingService {
     public RatingSummaryResponse findRatingsByMovie(UUID movieId)
             throws ResourceNotFoundException {
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
         return buildSummary(movieId);
     }

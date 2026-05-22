@@ -37,19 +37,19 @@ public class MovieCountryInfoServiceImplementation implements MovieCountryInfoSe
             throws ResourceNotFoundException, ConflictException {
 
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         Classification classification = classificationRepository.findWithCountryById(classificationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Classification not found with id: " + classificationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Clasificación no encontrada con id: " + classificationId));
 
         if (movieCountryInfoRepository.existsByMovie_IdAndClassification_Id(movieId, classificationId)) {
-            throw new ConflictException("Classification '" + classification.getName()
-                    + "' is already assigned to this movie");
+            throw new ConflictException("La clasificación '" + classification.getName()
+                    + "' ya está asignada a esta película");
         }
 
         UUID countryId = classification.getCountry().getId();
         if (movieCountryInfoRepository.existsByMovie_IdAndCountryId(movieId, countryId)) {
-            throw new ConflictException("This movie already has a classification for country '"
+            throw new ConflictException("Esta película ya tiene una clasificación para el país '"
                     + classification.getCountry().getName() + "'");
         }
 
@@ -67,7 +67,7 @@ public class MovieCountryInfoServiceImplementation implements MovieCountryInfoSe
             throws ResourceNotFoundException {
 
         MovieCountryInfo mci = movieCountryInfoRepository.findById(movieCountryInfoId)
-                .orElseThrow(() -> new ResourceNotFoundException("MovieCountryInfo not found with id: " + movieCountryInfoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Información de país para la película no encontrada con id: " + movieCountryInfoId));
 
         mci.setActive(!mci.isActive());
         return MovieCountryInfoResponse.from(movieCountryInfoRepository.save(mci));
@@ -79,11 +79,11 @@ public class MovieCountryInfoServiceImplementation implements MovieCountryInfoSe
             throws ResourceNotFoundException {
 
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         MovieCountryInfo mci = movieCountryInfoRepository.findById(movieCountryInfoId)
-                .orElseThrow(() -> new ResourceNotFoundException("MovieCountryInfo not found with id: " + movieCountryInfoId));
+                .orElseThrow(() -> new ResourceNotFoundException("Información de país para la película no encontrada con id: " + movieCountryInfoId));
 
         movieCountryInfoRepository.delete(mci);
         return getInfoList(movieId);
@@ -93,7 +93,7 @@ public class MovieCountryInfoServiceImplementation implements MovieCountryInfoSe
     @Transactional(readOnly = true)
     public List<MovieCountryInfoResponse> getCountryInfo(UUID movieId) throws ResourceNotFoundException {
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
         return getInfoList(movieId);
     }

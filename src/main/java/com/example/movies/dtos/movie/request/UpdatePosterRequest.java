@@ -8,6 +8,6 @@ import java.util.UUID;
 @Value
 public class UpdatePosterRequest {
 
-    @NotNull
+    @NotNull(message = "El id del nuevo póster principal es obligatorio")
     UUID newMainPosterId;
 }

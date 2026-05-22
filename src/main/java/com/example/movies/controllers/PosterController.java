@@ -5,6 +5,7 @@ import com.example.movies.dtos.movie.request.UpdatePosterRequest;
 import com.example.movies.dtos.movie.response.PosterResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import com.example.movies.services.movie.inteface.PosterService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,13 @@ public class PosterController {
     @Autowired
     public PosterController(PosterService posterService) {
         this.posterService = posterService;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<List<PosterResponse>> getPosters(@PathVariable UUID movieId)
+            throws ResourceNotFoundException {
+        return ResponseEntity.ok(posterService.getPosters(movieId));
     }
 
     @PostMapping

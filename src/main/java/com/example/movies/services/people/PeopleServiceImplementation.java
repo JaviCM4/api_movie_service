@@ -28,10 +28,10 @@ public class PeopleServiceImplementation implements PeopleService {
     public PeopleResponse updatePeople(UUID id, UpdatePeopleRequest dto)
             throws ResourceNotFoundException, ConflictException {
         People people = peopleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Persona no encontrada con id: " + id));
 
         if (peopleRepository.existsByNameIgnoreCaseAndIdNot(dto.getName(), id)) {
-            throw new ConflictException("Person with name '" + dto.getName() + "' already exists");
+            throw new ConflictException("Ya existe una persona con el nombre '" + dto.getName() + "'");
         }
 
         people.setName(dto.getName());

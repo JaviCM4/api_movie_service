@@ -115,7 +115,7 @@ public class MovieServiceImplementation implements MovieService {
     public void updateMovie(UUID movieId, UpdateMovieRequest dto)
             throws ResourceNotFoundException {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         if (dto.getTitle() != null) movie.setTitle(dto.getTitle());
         if (dto.getSynopsis() != null) movie.setSynopsis(dto.getSynopsis());
@@ -174,7 +174,7 @@ public class MovieServiceImplementation implements MovieService {
     @Transactional(readOnly = true)
     public MovieDetailResponse findMovieById(UUID movieId, UUID countryId) throws ResourceNotFoundException {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         List<UUID> ids = List.of(movieId);
 
@@ -191,7 +191,7 @@ public class MovieServiceImplementation implements MovieService {
     @Transactional(readOnly = true)
     public MovieAdminResponse findMovieAdminById(UUID movieId) throws ResourceNotFoundException {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
         return MovieAdminResponse.from(movie);
     }
 
@@ -204,7 +204,7 @@ public class MovieServiceImplementation implements MovieService {
         List<Classification> found = classificationRepository.findWithCountryByIdIn(uniqueIds);
 
         if (found.size() != uniqueIds.size()) {
-            throw new ResourceNotFoundException("One or more classifications do not exist");
+            throw new ResourceNotFoundException("Una o más clasificaciones no existen");
         }
 
         Set<UUID> seenCountries = new HashSet<>();
@@ -212,8 +212,8 @@ public class MovieServiceImplementation implements MovieService {
             UUID countryId = c.getCountry().getId();
             if (!seenCountries.add(countryId)) {
                 throw new ConflictException(
-                        "A movie cannot have more than one classification per country. " +
-                        "Country '" + c.getCountry().getName() + "' appears more than once.");
+                        "Una película no puede tener más de una clasificación por país. " +
+                        "El país '" + c.getCountry().getName() + "' aparece más de una vez.");
             }
         }
         return found;
@@ -224,7 +224,7 @@ public class MovieServiceImplementation implements MovieService {
         if (posters == null || posters.isEmpty()) return;
         long mainCount = posters.stream().filter(CreatePosterRequest::isMain).count();
         if (mainCount > 1) {
-            throw new ConflictException("Only one main poster is allowed per movie");
+            throw new ConflictException("Solo se permite un póster principal por película");
         }
     }
 

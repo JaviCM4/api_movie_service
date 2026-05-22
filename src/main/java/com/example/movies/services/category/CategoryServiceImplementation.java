@@ -28,7 +28,7 @@ public class CategoryServiceImplementation implements CategoryService {
     @Transactional(rollbackFor = Exception.class)
     public CategoryResponse createCategory(CreateCategoryRequest dto) throws ConflictException {
         if (categoryRepository.existsByNameIgnoreCase(dto.getName())) {
-            throw new ConflictException("Category already exists with name: " + dto.getName());
+            throw new ConflictException("Ya existe una categoría con el nombre: " + dto.getName());
         }
 
         Category category = new Category();
@@ -41,10 +41,10 @@ public class CategoryServiceImplementation implements CategoryService {
     public CategoryResponse updateCategory(UUID id, UpdateCategoryRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + id));
 
         if (categoryRepository.existsByNameIgnoreCaseAndIdNot(dto.getName(), id)) {
-            throw new ConflictException("Category already exists with name: " + dto.getName());
+            throw new ConflictException("Ya existe una categoría con el nombre: " + dto.getName());
         }
 
         category.setName(dto.getName());
@@ -55,7 +55,7 @@ public class CategoryServiceImplementation implements CategoryService {
     @Transactional(rollbackFor = Exception.class)
     public CategoryResponse toggleActive(UUID id) throws ResourceNotFoundException {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + id));
 
         category.setActive(!category.isActive());
         return CategoryResponse.from(categoryRepository.save(category));

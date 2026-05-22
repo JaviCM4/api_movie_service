@@ -12,10 +12,10 @@ import java.util.UUID;
 @Value
 public class AssignPeopleRequest {
 
-    @NotNull
+    @NotNull(message = "El id de la persona es obligatorio")
     UUID peopleId;
 
-    @NotNull
+    @NotNull(message = "El rol es obligatorio")
     RolMovieEnum rol;
 
     public MoviePeople createEntity(Movie movie, People people) {

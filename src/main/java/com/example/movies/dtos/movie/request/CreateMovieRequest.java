@@ -13,32 +13,32 @@ import java.util.UUID;
 @Value
 public class CreateMovieRequest {
 
-    @NotNull
-    @Size(min = 1)
+    @NotNull(message = "Las clasificaciones son obligatorias")
+    @Size(min = 1, message = "Debe incluir al menos una clasificación")
     List<UUID> classificationIds;
 
-    @NotBlank
-    @Size(min = 2, max = 75)
+    @NotBlank(message = "El título es obligatorio")
+    @Size(min = 2, max = 75, message = "El título debe tener entre 2 y 75 caracteres")
     String title;
 
-    @NotBlank
-    @Size(min = 2, max = 255)
+    @NotBlank(message = "La sinopsis es obligatoria")
+    @Size(min = 2, max = 255, message = "La sinopsis debe tener entre 2 y 255 caracteres")
     String synopsis;
 
-    @NotNull
-    @Min(1)
+    @NotNull(message = "La duración es obligatoria")
+    @Min(value = 1, message = "La duración debe ser al menos 1 minuto")
     Integer duration;
 
-    @URL
-    @Size(max = 500)
+    @URL(message = "El enlace del tráiler debe ser una URL válida")
+    @Size(max = 500, message = "El enlace del tráiler no puede superar los 500 caracteres")
     String trailerLink;
 
-    @NotBlank
-    @Size(min = 2, max = 50)
+    @NotBlank(message = "El idioma original es obligatorio")
+    @Size(min = 2, max = 50, message = "El idioma original debe tener entre 2 y 50 caracteres")
     String originalLanguage;
 
-    @NotNull
-    @Future
+    @NotNull(message = "La fecha de estreno es obligatoria")
+    @Future(message = "La fecha de estreno debe ser una fecha futura")
     LocalDate releaseDate;
 
     @Valid

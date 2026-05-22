@@ -8,6 +8,6 @@ import java.util.UUID;
 @Value
 public class MovieCategoryRequest {
 
-    @NotNull
+    @NotNull(message = "El id de la categoría es obligatorio")
     UUID categoryId;
 }

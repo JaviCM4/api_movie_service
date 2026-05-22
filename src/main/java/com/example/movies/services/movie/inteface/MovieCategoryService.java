@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public interface MovieCategoryService {
 
+    List<CategoryResponse> getCategories(UUID movieId) throws ResourceNotFoundException;
+
     List<CategoryResponse> addCategory(UUID movieId, UUID categoryId)
             throws ResourceNotFoundException, ConflictException;
 

@@ -19,7 +19,7 @@ public class ControllerExceptionHandler {
     public String handleValidation(MethodArgumentNotValidException ex) {
         return ex.getBindingResult().getFieldErrors()
                 .stream()
-                .map(error -> Objects.requireNonNullElse(error.getDefaultMessage(), "Validation error"))
+                .map(error -> Objects.requireNonNullElse(error.getDefaultMessage(), "Error de validación"))
                 .collect(Collectors.joining("; "));
     }
 

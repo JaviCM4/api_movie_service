@@ -28,7 +28,7 @@ public class ActorServiceImplementation implements ActorService {
     @Transactional(rollbackFor = Exception.class)
     public void createActor(CreateActorRequest dto) throws ConflictException {
         if (actorRepository.existsByNameIgnoreCase(dto.getName())) {
-            throw new ConflictException("Actor with name " + dto.getName() + " already exists");
+            throw new ConflictException("Ya existe un actor con el nombre " + dto.getName());
         }
         actorRepository.save(dto.createEntity());
     }
@@ -37,10 +37,10 @@ public class ActorServiceImplementation implements ActorService {
     @Transactional(rollbackFor = Exception.class)
     public void updateActor(UUID actorId, UpdateActorRequest dto) throws ConflictException, ResourceNotFoundException {
         Actor actorToUpdate = actorRepository.findById(actorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Actor not found with id: " + actorId));
+                .orElseThrow(() -> new ResourceNotFoundException("Actor no encontrado con id: " + actorId));
 
         if (actorRepository.existsByNameIgnoreCaseAndIdNot(dto.getName(), actorId)) {
-            throw new ConflictException("Actor with name " + dto.getName() + " already exists");
+            throw new ConflictException("Ya existe un actor con el nombre " + dto.getName());
         }
 
         actorToUpdate.setName(dto.getName());

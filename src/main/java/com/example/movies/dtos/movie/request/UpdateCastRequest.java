@@ -7,7 +7,7 @@ import lombok.Value;
 @Value
 public class UpdateCastRequest {
 
-    @NotBlank
-    @Size(max = 255)
+    @NotBlank(message = "El nombre del personaje es obligatorio")
+    @Size(max = 255, message = "El nombre del personaje no puede superar los 255 caracteres")
     String characterName;
 }

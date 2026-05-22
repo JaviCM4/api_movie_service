@@ -10,8 +10,8 @@ import java.util.UUID;
 @Value
 public class CreateCommentRequest {
 
-    @NotBlank
-    @Size(min = 1, max = 1000)
+    @NotBlank(message = "El contenido del comentario es obligatorio")
+    @Size(min = 1, max = 1000, message = "El comentario debe tener entre 1 y 1000 caracteres")
     String content;
 
     public MovieComment createEntity(UUID userId) {

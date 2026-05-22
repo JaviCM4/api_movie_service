@@ -41,14 +41,14 @@ public class MoviePeopleServiceImplementation implements MoviePeopleService {
             throws ResourceNotFoundException, ConflictException {
 
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         People people = peopleRepository.findById(dto.getPeopleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found with id: " + dto.getPeopleId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Persona no encontrada con id: " + dto.getPeopleId()));
 
         if (moviePeopleRepository.existsByMovie_IdAndPeople_IdAndRol(movieId, dto.getPeopleId(), dto.getRol())) {
-            throw new ConflictException("'" + people.getName() + "' is already assigned as "
-                    + dto.getRol() + " in this movie");
+            throw new ConflictException("'" + people.getName() + "' ya está asignado/a como "
+                    + dto.getRol() + " en esta película");
         }
 
         MoviePeople moviePeople = dto.createEntity(movie, people);
@@ -62,15 +62,15 @@ public class MoviePeopleServiceImplementation implements MoviePeopleService {
             throws ResourceNotFoundException, ConflictException {
 
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         MoviePeople moviePeople = moviePeopleRepository.findById(moviePeopleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie-person entry not found with id: " + moviePeopleId));
+                .orElseThrow(() -> new ResourceNotFoundException("Entrada de persona en película no encontrada con id: " + moviePeopleId));
 
         if (moviePeopleRepository.existsByMovie_IdAndPeople_IdAndRol(movieId, moviePeople.getPeople().getId(), rol)) {
-            throw new ConflictException("'" + moviePeople.getPeople().getName() + "' is already assigned as "
-                    + rol + " in this movie");
+            throw new ConflictException("'" + moviePeople.getPeople().getName() + "' ya está asignado/a como "
+                    + rol + " en esta película");
         }
 
         moviePeople.setRol(rol);
@@ -84,11 +84,11 @@ public class MoviePeopleServiceImplementation implements MoviePeopleService {
             throws ResourceNotFoundException {
 
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         MoviePeople moviePeople = moviePeopleRepository.findById(moviePeopleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie-person entry not found with id: " + moviePeopleId));
+                .orElseThrow(() -> new ResourceNotFoundException("Entrada de persona en película no encontrada con id: " + moviePeopleId));
 
         moviePeopleRepository.delete(moviePeople);
         return getPeopleList(movieId);
@@ -100,7 +100,7 @@ public class MoviePeopleServiceImplementation implements MoviePeopleService {
             throws ResourceNotFoundException {
 
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         return getPeopleList(movieId);

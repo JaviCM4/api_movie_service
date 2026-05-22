@@ -30,11 +30,20 @@ public class PosterServiceImplementation implements PosterService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<PosterResponse> getPosters(UUID movieId) throws ResourceNotFoundException {
+        if (!movieRepository.existsById(movieId)) {
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
+        }
+        return postersOf(movieId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public List<PosterResponse> addPoster(UUID movieId, CreatePosterRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         if (dto.isMain()) {
             posterRepository.findByMovie_IdAndIsMain(movieId, true)
@@ -54,12 +63,12 @@ public class PosterServiceImplementation implements PosterService {
             throws ResourceNotFoundException {
         // Verificar que la película exista
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         Poster newMain = posterRepository.findById(dto.getNewMainPosterId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Poster not found with id: " + dto.getNewMainPosterId()));
+                        "Póster no encontrado con id: " + dto.getNewMainPosterId()));
 
         posterRepository.findByMovie_IdAndIsMain(movieId, true)
                 .ifPresent(current -> {
@@ -80,13 +89,13 @@ public class PosterServiceImplementation implements PosterService {
     public List<PosterResponse> deletePoster(UUID posterId)
             throws ResourceNotFoundException, ConflictException {
         Poster poster = posterRepository.findById(posterId)
-                .orElseThrow(() -> new ResourceNotFoundException("Poster not found with id: " + posterId));
+                .orElseThrow(() -> new ResourceNotFoundException("Póster no encontrado con id: " + posterId));
 
         UUID movieId = poster.getMovie().getId();
         long total = posterRepository.countByMovie_Id(movieId);
 
         if (total <= 1) {
-            throw new ConflictException("Cannot delete the only poster of a movie");
+            throw new ConflictException("No se puede eliminar el único póster de una película");
         }
 
         boolean wasMain = poster.isMain();

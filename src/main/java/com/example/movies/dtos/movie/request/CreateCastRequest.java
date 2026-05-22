@@ -12,10 +12,10 @@ import java.util.UUID;
 @Value
 public class CreateCastRequest {
 
-    @NotNull
+    @NotNull(message = "El id del actor es obligatorio")
     UUID actorId;
 
-    @Size(max = 255)
+    @Size(max = 255, message = "El nombre del personaje no puede superar los 255 caracteres")
     String characterName;
 
     public Cast createEntity(Movie movie, Actor actor) {

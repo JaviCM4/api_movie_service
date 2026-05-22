@@ -26,6 +26,13 @@ public class MovieCategoryController {
         this.movieCategoryService = movieCategoryService;
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
+    public ResponseEntity<List<CategoryResponse>> getCategories(@PathVariable UUID movieId)
+            throws ResourceNotFoundException {
+        return ResponseEntity.ok(movieCategoryService.getCategories(movieId));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<CategoryResponse>> addCategory(@PathVariable UUID movieId, @Valid @RequestBody MovieCategoryRequest request)

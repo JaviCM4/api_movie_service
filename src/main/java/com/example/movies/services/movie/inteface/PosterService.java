@@ -11,6 +11,8 @@ import java.util.UUID;
 
 public interface PosterService {
 
+    List<PosterResponse> getPosters(UUID movieId) throws ResourceNotFoundException;
+
     List<PosterResponse> addPoster(UUID movieId, CreatePosterRequest dto) throws ResourceNotFoundException, ConflictException;
 
     List<PosterResponse> setMainPoster(UUID movieId, UpdatePosterRequest dto) throws ResourceNotFoundException;

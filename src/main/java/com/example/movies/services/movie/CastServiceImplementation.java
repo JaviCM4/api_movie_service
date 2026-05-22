@@ -39,13 +39,13 @@ public class CastServiceImplementation implements CastService {
             throws ResourceNotFoundException, ConflictException {
 
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         Actor actor = actorRepository.findById(dto.getActorId())
-                .orElseThrow(() -> new ResourceNotFoundException("Actor not found with id: " + dto.getActorId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Actor no encontrado con id: " + dto.getActorId()));
 
         if (castRepository.existsByMovie_IdAndActor_Id(movieId, dto.getActorId())) {
-            throw new ConflictException("Actor '" + actor.getName() + "' is already in the cast of this movie");
+            throw new ConflictException("El actor '" + actor.getName() + "' ya está en el reparto de esta película");
         }
 
         Cast cast = dto.createEntity(movie, actor);
@@ -59,7 +59,7 @@ public class CastServiceImplementation implements CastService {
             throws ResourceNotFoundException {
 
         Cast cast = castRepository.findById(castId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cast entry not found with id: " + castId));
+                .orElseThrow(() -> new ResourceNotFoundException("Entrada de reparto no encontrada con id: " + castId));
 
         cast.setCharacterName(dto.getCharacterName());
         return CastResponse.from(castRepository.save(cast));
@@ -71,11 +71,11 @@ public class CastServiceImplementation implements CastService {
             throws ResourceNotFoundException {
 
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         Cast cast = castRepository.findById(castId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cast entry not found with id: " + castId));
+                .orElseThrow(() -> new ResourceNotFoundException("Entrada de reparto no encontrada con id: " + castId));
 
         castRepository.delete(cast);
         return getCastList(movieId);
@@ -85,7 +85,7 @@ public class CastServiceImplementation implements CastService {
     @Transactional(readOnly = true)
     public List<CastResponse> getCast(UUID movieId) throws ResourceNotFoundException {
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
         return getCastList(movieId);
     }

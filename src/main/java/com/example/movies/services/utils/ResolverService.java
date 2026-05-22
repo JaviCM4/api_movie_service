@@ -18,7 +18,7 @@ public class ResolverService {
         List<T> found = fetcher.apply(uniqueIds);
 
         if (found.size() != uniqueIds.size()) {
-            throw new ResourceNotFoundException("One or more " + entityName + " do not exist");
+            throw new ResourceNotFoundException("Uno o más " + entityName + " no existen");
         }
         return found;
     }

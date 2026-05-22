@@ -41,15 +41,15 @@ public class CommentServiceImplementation implements CommentService {
     public CommentResponse createComment(UUID movieId, UUID userId, CreateCommentRequest dto)
             throws ResourceNotFoundException, ConflictException {
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         if (!movie.isAllowComments()) {
-            throw new ConflictException("Comments are not allowed for this movie");
+            throw new ConflictException("Los comentarios no están permitidos para esta película");
         }
 
         //Validar que el usuario ya tenga (haya visto la pelicula) una entrada para la pelicula antes de permitirle comentar
         if (!ticketsClient.hasTicketsByMovieAndUser(movieId, userId)) {
-            throw new ConflictException("You cannot comment on this movie because you haven't bought tickets for it");
+            throw new ConflictException("No puedes comentar esta película porque no has comprado entradas para ella");
         }
 
         MovieComment comment = dto.createEntity(userId);
@@ -63,10 +63,10 @@ public class CommentServiceImplementation implements CommentService {
     public CommentResponse updateComment(UUID commentId, UUID userId, UpdateCommentRequest dto)
             throws ResourceNotFoundException, ConflictException {
         MovieComment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+                .orElseThrow(() -> new ResourceNotFoundException("Comentario no encontrado con id: " + commentId));
 
         if (!comment.getUserId().equals(userId)) {
-            throw new ConflictException("You don't have permission to update this comment because it was created by another user");
+            throw new ConflictException("No tienes permiso para modificar este comentario porque fue creado por otro usuario");
         }
 
         comment.setContent(dto.getContent());
@@ -79,10 +79,10 @@ public class CommentServiceImplementation implements CommentService {
     public void deleteComment(UUID commentId, UUID userId)
             throws ResourceNotFoundException, ConflictException {
         MovieComment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+                .orElseThrow(() -> new ResourceNotFoundException("Comentario no encontrado con id: " + commentId));
 
         if (!comment.getUserId().equals(userId)) {
-            throw new ConflictException("You don't have permission to delete this comment because it was created by another user");
+            throw new ConflictException("No tienes permiso para eliminar este comentario porque fue creado por otro usuario");
         }
 
         commentRepository.deleteById(commentId);
@@ -93,7 +93,7 @@ public class CommentServiceImplementation implements CommentService {
     public List<CommentResponse> findCommentsByMovie(UUID movieId)
             throws ResourceNotFoundException {
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
         return commentRepository.findByMovie_IdOrderByCreatedAtDesc(movieId)
                 .stream()

@@ -43,9 +43,8 @@ public class CastController {
 
     @PatchMapping("/{castId}")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-    public ResponseEntity<CastResponse> updateCharacterName(@PathVariable UUID movieId,
-                                                             @PathVariable UUID castId,
-                                                             @Valid @RequestBody UpdateCastRequest request)
+    public ResponseEntity<CastResponse> updateCharacterName(@PathVariable UUID castId,
+                                                            @Valid @RequestBody UpdateCastRequest request)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(castService.updateCharacterName(castId, request));
     }

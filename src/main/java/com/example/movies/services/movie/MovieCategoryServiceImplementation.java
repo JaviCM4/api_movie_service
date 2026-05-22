@@ -37,13 +37,13 @@ public class MovieCategoryServiceImplementation implements MovieCategoryService 
             throws ResourceNotFoundException, ConflictException {
 
         Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + movieId));
+                .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
 
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + categoryId));
 
         if (movieCategoryRepository.existsByMovie_IdAndCategory_Id(movieId, categoryId)) {
-            throw new ConflictException("Category '" + category.getName() + "' is already assigned to this movie");
+            throw new ConflictException("La categoría '" + category.getName() + "' ya está asignada a esta película");
         }
 
         MovieCategory movieCategory = new MovieCategory();
@@ -51,7 +51,7 @@ public class MovieCategoryServiceImplementation implements MovieCategoryService 
         movieCategory.setCategory(category);
         movieCategoryRepository.save(movieCategory);
 
-        return getCategories(movieId);
+        return getCategoryList(movieId);
     }
 
     @Override
@@ -60,24 +60,33 @@ public class MovieCategoryServiceImplementation implements MovieCategoryService 
             throws ResourceNotFoundException, ConflictException {
 
         if (!movieRepository.existsById(movieId)) {
-            throw new ResourceNotFoundException("Movie not found with id: " + movieId);
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
         }
 
         if (movieCategoryRepository.countByMovie_Id(movieId) <= 1) {
-            throw new ConflictException("Cannot remove the only category from the movie");
+            throw new ConflictException("No se puede eliminar la única categoría de la película");
         }
 
         MovieCategory movieCategory = movieCategoryRepository.findByMovie_Id(movieId)
                 .stream()
                 .filter(mc -> mc.getCategory().getId().equals(categoryId))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found in this movie"));
+                .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada en esta película"));
 
         movieCategoryRepository.delete(movieCategory);
-        return getCategories(movieId);
+        return getCategoryList(movieId);
     }
 
-    private List<CategoryResponse> getCategories(UUID movieId) {
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getCategories(UUID movieId) throws ResourceNotFoundException {
+        if (!movieRepository.existsById(movieId)) {
+            throw new ResourceNotFoundException("Película no encontrada con id: " + movieId);
+        }
+        return getCategoryList(movieId);
+    }
+
+    private List<CategoryResponse> getCategoryList(UUID movieId) {
         return movieCategoryRepository.findByMovie_Id(movieId)
                 .stream()
                 .map(mc -> CategoryResponse.from(mc.getCategory()))

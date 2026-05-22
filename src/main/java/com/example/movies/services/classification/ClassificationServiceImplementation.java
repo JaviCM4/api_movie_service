@@ -27,7 +27,7 @@ public class ClassificationServiceImplementation implements ClassificationServic
     @Transactional(readOnly = true)
     public List<ClassificationResponse> findByCountry(UUID countryId) throws ResourceNotFoundException {
         if (!countryRepository.existsById(countryId)) {
-            throw new ResourceNotFoundException("Country not found with id: " + countryId);
+            throw new ResourceNotFoundException("País no encontrado con id: " + countryId);
         }
         return classificationRepository.findByCountryId(countryId)
                 .stream()

@@ -10,9 +10,9 @@ import org.hibernate.validator.constraints.URL;
 @Value
 public class CreatePosterRequest {
 
-    @NotNull
-    @URL
-    @Size(max = 500)
+    @NotNull(message = "La URL del póster es obligatoria")
+    @URL(message = "La URL del póster debe ser válida")
+    @Size(max = 500, message = "La URL del póster no puede superar los 500 caracteres")
     String urlImagen;
 
     @NotNull

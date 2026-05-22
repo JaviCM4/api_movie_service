@@ -42,8 +42,7 @@ public class MovieCountryInfoController {
 
     @PatchMapping("/{movieCountryInfoId}/toggle")
     @PreAuthorize("hasRole('SYSTEM_ADMIN')")
-    public ResponseEntity<MovieCountryInfoResponse> toggleActive(@PathVariable UUID movieId,
-                                                                  @PathVariable UUID movieCountryInfoId)
+    public ResponseEntity<MovieCountryInfoResponse> toggleActive(@PathVariable UUID movieCountryInfoId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(movieCountryInfoService.toggleActive(movieCountryInfoId));
     }
