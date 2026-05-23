@@ -69,4 +69,13 @@ public class CategoryServiceImplementation implements CategoryService {
                 .map(CategoryResponse::from)
                 .toList();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> findAll() {
+        return categoryRepository.findAll()
+                .stream()
+                .map(CategoryResponse::from)
+                .toList();
+    }
 }

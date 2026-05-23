@@ -14,4 +14,5 @@ public interface PeopleRepository extends JpaRepository<People, UUID> {
 
     Boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 
+    List<People> findByIsActiveTrue();
 }

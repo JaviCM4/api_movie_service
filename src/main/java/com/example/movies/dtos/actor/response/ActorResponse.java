@@ -12,8 +12,9 @@ public class ActorResponse {
     private UUID id;
     private String name;
     private String urlImage;
+    private boolean active;
 
     public static ActorResponse from(Actor actor) {
-        return new ActorResponse(actor.getId(), actor.getName(), actor.getUrlImage());
+        return new ActorResponse(actor.getId(), actor.getName(), actor.getUrlImage(), actor.isActive());
     }
 }

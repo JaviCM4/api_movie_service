@@ -1,5 +1,6 @@
 package com.example.movies.services.people;
 
+import com.example.movies.dtos.people.request.CreatePeopleRequest;
 import com.example.movies.dtos.people.request.UpdatePeopleRequest;
 import com.example.movies.dtos.people.response.PeopleResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -10,7 +11,11 @@ import java.util.UUID;
 
 public interface PeopleService {
 
+    PeopleResponse createPeople(CreatePeopleRequest dto) throws ConflictException;
+
     PeopleResponse updatePeople(UUID id, UpdatePeopleRequest dto) throws ResourceNotFoundException, ConflictException;
 
     List<PeopleResponse> findAll();
+
+    PeopleResponse togglePeople(UUID id) throws ResourceNotFoundException;
 }

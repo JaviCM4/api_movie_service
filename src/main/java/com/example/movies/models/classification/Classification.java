@@ -29,4 +29,7 @@ public class Classification {
 
     @Column(name = "age_limit", nullable = false)
     private Integer ageLimit;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
 }

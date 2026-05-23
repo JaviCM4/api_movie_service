@@ -19,4 +19,7 @@ public class People {
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
 }

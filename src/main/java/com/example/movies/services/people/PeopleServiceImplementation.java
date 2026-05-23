@@ -1,5 +1,6 @@
 package com.example.movies.services.people;
 
+import com.example.movies.dtos.people.request.CreatePeopleRequest;
 import com.example.movies.dtos.people.request.UpdatePeopleRequest;
 import com.example.movies.dtos.people.response.PeopleResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -25,6 +26,15 @@ public class PeopleServiceImplementation implements PeopleService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public PeopleResponse createPeople(CreatePeopleRequest dto) throws ConflictException {
+        if (peopleRepository.existsByNameIgnoreCase(dto.getName())) {
+            throw new ConflictException("Ya existe una persona con el nombre '" + dto.getName() + "'");
+        }
+        return PeopleResponse.from(peopleRepository.save(dto.createEntity()));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public PeopleResponse updatePeople(UUID id, UpdatePeopleRequest dto)
             throws ResourceNotFoundException, ConflictException {
         People people = peopleRepository.findById(id)
@@ -45,5 +55,14 @@ public class PeopleServiceImplementation implements PeopleService {
                 .stream()
                 .map(PeopleResponse::from)
                 .toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public PeopleResponse togglePeople(UUID id) throws ResourceNotFoundException {
+        People people = peopleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Persona no encontrada con id: " + id));
+        people.setActive(!people.isActive());
+        return PeopleResponse.from(peopleRepository.save(people));
     }
 }

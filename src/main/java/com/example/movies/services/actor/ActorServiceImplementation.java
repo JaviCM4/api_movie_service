@@ -26,16 +26,16 @@ public class ActorServiceImplementation implements ActorService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createActor(CreateActorRequest dto) throws ConflictException {
+    public ActorResponse createActor(CreateActorRequest dto) throws ConflictException {
         if (actorRepository.existsByNameIgnoreCase(dto.getName())) {
             throw new ConflictException("Ya existe un actor con el nombre " + dto.getName());
         }
-        actorRepository.save(dto.createEntity());
+        return ActorResponse.from(actorRepository.save(dto.createEntity()));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void updateActor(UUID actorId, UpdateActorRequest dto) throws ConflictException, ResourceNotFoundException {
+    public ActorResponse updateActor(UUID actorId, UpdateActorRequest dto) throws ConflictException, ResourceNotFoundException {
         Actor actorToUpdate = actorRepository.findById(actorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Actor no encontrado con id: " + actorId));
 
@@ -45,7 +45,7 @@ public class ActorServiceImplementation implements ActorService {
 
         actorToUpdate.setName(dto.getName());
         actorToUpdate.setUrlImage(dto.getUrlImage());
-        actorRepository.save(actorToUpdate);
+        return ActorResponse.from(actorRepository.save(actorToUpdate));
     }
 
     @Override
@@ -55,5 +55,14 @@ public class ActorServiceImplementation implements ActorService {
                 .stream()
                 .map(ActorResponse::from)
                 .toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ActorResponse toggleActor(UUID actorId) throws ResourceNotFoundException {
+        Actor actor = actorRepository.findById(actorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Actor no encontrado con id: " + actorId));
+        actor.setActive(!actor.isActive());
+        return ActorResponse.from(actorRepository.save(actor));
     }
 }

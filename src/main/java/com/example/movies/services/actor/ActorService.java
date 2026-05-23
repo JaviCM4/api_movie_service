@@ -11,9 +11,11 @@ import java.util.UUID;
 
 public interface ActorService {
 
-    void createActor(CreateActorRequest dto) throws ConflictException;
+    ActorResponse createActor(CreateActorRequest dto) throws ConflictException;
 
-    void updateActor(UUID actorId, UpdateActorRequest dto) throws ConflictException, ResourceNotFoundException;
+    ActorResponse updateActor(UUID actorId, UpdateActorRequest dto) throws ConflictException, ResourceNotFoundException;
 
     List<ActorResponse> findAllActor();
+
+    ActorResponse toggleActor(UUID actorId) throws ResourceNotFoundException;
 }

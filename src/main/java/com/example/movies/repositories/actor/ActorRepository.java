@@ -15,4 +15,6 @@ public interface ActorRepository extends JpaRepository<Actor, UUID> {
     Boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 
     List<Actor> findByNameContainingIgnoreCase(String name);
+
+    List<Actor> findByIsActiveTrue();
 }

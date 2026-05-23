@@ -18,4 +18,6 @@ public interface CategoryService {
     CategoryResponse toggleActive(UUID id) throws ResourceNotFoundException;
 
     List<CategoryResponse> findAllActive();
+
+    List<CategoryResponse> findAll();
 }

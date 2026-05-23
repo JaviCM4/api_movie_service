@@ -12,13 +12,15 @@ public class ClassificationResponse {
     String name;
     Integer ageLimit;
     String country;
+    boolean active;
 
     public static ClassificationResponse from(Classification classification) {
         return new ClassificationResponse(
                 classification.getId(),
                 classification.getName(),
                 classification.getAgeLimit(),
-                classification.getCountry().getName()
+                classification.getCountry().getName(),
+                classification.isActive()
         );
     }
 }

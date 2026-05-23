@@ -24,4 +24,7 @@ public class Actor {
 
     @Column(name = "url_image", length = 500)
     private String urlImage;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
 }
