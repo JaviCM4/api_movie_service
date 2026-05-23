@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,24 +37,27 @@ public class ActorServiceImplTest {
     @InjectMocks
     private ActorServiceImplementation actorService;
 
-    // Create Actor
+    // ── createActor ───────────────────────────────────────────────────────
+
     @Test
     void testCreateActor() throws Exception {
         // Arrange
         CreateActorRequest request = new CreateActorRequest(ACTOR_NAME, ACTOR_URL_IMAGE);
-        ActorServiceImplementation spy = spy(actorService);
         ArgumentCaptor<Actor> actorCaptor = ArgumentCaptor.forClass(Actor.class);
+        Actor saved = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, true);
 
         when(actorRepository.existsByNameIgnoreCase(ACTOR_NAME)).thenReturn(false);
+        when(actorRepository.save(any(Actor.class))).thenReturn(saved);
 
         // Act
-        spy.createActor(request);
+        ActorResponse result = actorService.createActor(request);
 
         // Assert
         assertAll(
                 () -> verify(actorRepository).save(actorCaptor.capture()),
                 () -> assertEquals(ACTOR_NAME, actorCaptor.getValue().getName()),
-                () -> assertEquals(ACTOR_URL_IMAGE, actorCaptor.getValue().getUrlImage())
+                () -> assertEquals(ACTOR_URL_IMAGE, actorCaptor.getValue().getUrlImage()),
+                () -> assertTrue(result.isActive())
         );
     }
 
@@ -67,32 +71,34 @@ public class ActorServiceImplTest {
         // Assert
         assertThrows(ConflictException.class,
                 () -> actorService.createActor(request));
+        verify(actorRepository, never()).save(any());
     }
 
-    // Update Actor
+    // ── updateActor ───────────────────────────────────────────────────────
+
     @Test
     void testUpdateActor() throws Exception {
         // Arrange
         UpdateActorRequest request = new UpdateActorRequest(ACTOR_NAME_UPDATED, ACTOR_URL_IMAGE_UPDATED);
-        ActorServiceImplementation spy = spy(actorService);
-
-        Actor existingActor = new Actor();
-        existingActor.setName(ACTOR_NAME);
-        existingActor.setUrlImage(ACTOR_URL_IMAGE);
-
         ArgumentCaptor<Actor> actorCaptor = ArgumentCaptor.forClass(Actor.class);
 
-        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.of(existingActor));
+        Actor existing = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, true);
+        Actor saved    = buildActor(ACTOR_ID, ACTOR_NAME_UPDATED, ACTOR_URL_IMAGE_UPDATED, true);
+
+        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.of(existing));
         when(actorRepository.existsByNameIgnoreCaseAndIdNot(ACTOR_NAME_UPDATED, ACTOR_ID)).thenReturn(false);
+        when(actorRepository.save(any(Actor.class))).thenReturn(saved);
 
         // Act
-        spy.updateActor(ACTOR_ID, request);
+        ActorResponse result = actorService.updateActor(ACTOR_ID, request);
 
         // Assert
         assertAll(
                 () -> verify(actorRepository).save(actorCaptor.capture()),
                 () -> assertEquals(ACTOR_NAME_UPDATED, actorCaptor.getValue().getName()),
-                () -> assertEquals(ACTOR_URL_IMAGE_UPDATED, actorCaptor.getValue().getUrlImage())
+                () -> assertEquals(ACTOR_URL_IMAGE_UPDATED, actorCaptor.getValue().getUrlImage()),
+                () -> assertEquals(ACTOR_NAME_UPDATED, result.getName()),
+                () -> assertTrue(result.isActive())
         );
     }
 
@@ -106,6 +112,7 @@ public class ActorServiceImplTest {
         // Assert
         assertThrows(ResourceNotFoundException.class,
                 () -> actorService.updateActor(ACTOR_ID, request));
+        verify(actorRepository, never()).save(any());
     }
 
     @Test
@@ -113,28 +120,24 @@ public class ActorServiceImplTest {
         // Arrange
         UpdateActorRequest request = new UpdateActorRequest(ACTOR_NAME_UPDATED, ACTOR_URL_IMAGE_UPDATED);
 
-        Actor existingActor = new Actor();
-        existingActor.setName(ACTOR_NAME);
+        Actor existing = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, true);
 
-        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.of(existingActor));
+        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.of(existing));
         when(actorRepository.existsByNameIgnoreCaseAndIdNot(ACTOR_NAME_UPDATED, ACTOR_ID)).thenReturn(true);
 
         // Assert
         assertThrows(ConflictException.class,
                 () -> actorService.updateActor(ACTOR_ID, request));
+        verify(actorRepository, never()).save(any());
     }
 
-    // find All Actor
+    // ── findAllActor ──────────────────────────────────────────────────────
+
     @Test
     void testFindAllActors() {
         // Arrange
-        Actor actor1 = new Actor();
-        actor1.setName(ACTOR_NAME);
-        actor1.setUrlImage(ACTOR_URL_IMAGE);
-
-        Actor actor2 = new Actor();
-        actor2.setName("Brad Pitt");
-        actor2.setUrlImage("http://img.com/brad.jpg");
+        Actor actor1 = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, true);
+        Actor actor2 = buildActor(UUID.randomUUID(), "Brad Pitt", "http://img.com/brad.jpg", false);
 
         when(actorRepository.findAll()).thenReturn(List.of(actor1, actor2));
 
@@ -146,7 +149,9 @@ public class ActorServiceImplTest {
                 () -> assertEquals(2, result.size()),
                 () -> assertEquals(ACTOR_NAME, result.get(0).getName()),
                 () -> assertEquals(ACTOR_URL_IMAGE, result.get(0).getUrlImage()),
-                () -> assertEquals("Brad Pitt", result.get(1).getName())
+                () -> assertTrue(result.get(0).isActive()),
+                () -> assertEquals("Brad Pitt", result.get(1).getName()),
+                () -> assertFalse(result.get(1).isActive())
         );
     }
 
@@ -160,5 +165,67 @@ public class ActorServiceImplTest {
 
         // Assert
         assertTrue(result.isEmpty());
+    }
+
+    // ── toggleActor ───────────────────────────────────────────────────────
+
+    @Test
+    void testToggleActorDeactivates() throws Exception {
+        // Arrange
+        Actor active = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, true);
+        Actor saved  = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, false);
+
+        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.of(active));
+        when(actorRepository.save(any(Actor.class))).thenReturn(saved);
+
+        // Act
+        ActorResponse result = actorService.toggleActor(ACTOR_ID);
+
+        // Assert
+        assertAll(
+                () -> verify(actorRepository).save(active),
+                () -> assertFalse(result.isActive())
+        );
+    }
+
+    @Test
+    void testToggleActorActivates() throws Exception {
+        // Arrange
+        Actor inactive = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, false);
+        Actor saved    = buildActor(ACTOR_ID, ACTOR_NAME, ACTOR_URL_IMAGE, true);
+
+        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.of(inactive));
+        when(actorRepository.save(any(Actor.class))).thenReturn(saved);
+
+        // Act
+        ActorResponse result = actorService.toggleActor(ACTOR_ID);
+
+        // Assert
+        assertAll(
+                () -> verify(actorRepository).save(inactive),
+                () -> assertTrue(result.isActive())
+        );
+    }
+
+    @Test
+    void testToggleActorWhenNotFound() {
+        // Arrange
+        when(actorRepository.findById(ACTOR_ID)).thenReturn(Optional.empty());
+
+        // Assert
+        assertThrows(ResourceNotFoundException.class,
+                () -> actorService.toggleActor(ACTOR_ID));
+        verify(actorRepository, never()).save(any());
+    }
+
+    // ── Builders ──────────────────────────────────────────────────────────
+
+    private Actor buildActor(UUID id, String name, String urlImage, boolean active) {
+        Actor actor = new Actor();
+        actor.setId(id);
+        actor.setName(name);
+        actor.setUrlImage(urlImage);
+        actor.setActive(active);
+        return actor;
     }
 }
