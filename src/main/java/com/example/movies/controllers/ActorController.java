@@ -28,20 +28,20 @@ public class ActorController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<ActorResponse>> listActors() {
         return ResponseEntity.ok(actorService.findAllActor());
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ActorResponse> createActor(
             @Valid @RequestBody CreateActorRequest request) throws ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(actorService.createActor(request));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ActorResponse> updateActor(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateActorRequest request) throws ResourceNotFoundException, ConflictException {
@@ -49,7 +49,7 @@ public class ActorController {
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ActorResponse> toggleActor(@PathVariable UUID id) throws ResourceNotFoundException {
         return ResponseEntity.ok(actorService.toggleActor(id));
     }

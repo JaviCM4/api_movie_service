@@ -28,20 +28,20 @@ public class PeopleController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<PeopleResponse>> getAll() {
         return ResponseEntity.ok(peopleService.findAll());
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<PeopleResponse> createPeople(
             @Valid @RequestBody CreatePeopleRequest request) throws ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(peopleService.createPeople(request));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<PeopleResponse> updatePeople(
             @PathVariable UUID id,
             @Valid @RequestBody UpdatePeopleRequest request) throws ConflictException, ResourceNotFoundException {
@@ -49,7 +49,7 @@ public class PeopleController {
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<PeopleResponse> togglePeople(@PathVariable UUID id) throws ResourceNotFoundException {
         return ResponseEntity.ok(peopleService.togglePeople(id));
     }

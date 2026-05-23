@@ -33,27 +33,27 @@ public class CategoryController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(categoryService.findAll());
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CreateCategoryRequest request)
             throws ConflictException {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable UUID id, @Valid @RequestBody UpdateCategoryRequest request)
             throws ConflictException, ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<CategoryResponse> toggleActive(@PathVariable UUID id)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(categoryService.toggleActive(id));

@@ -33,14 +33,14 @@ public class ClassificationController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<List<ClassificationResponse>> getAllByCountry(@PathVariable UUID countryId)
             throws ResourceNotFoundException {
         return ResponseEntity.ok(classificationService.findAllByCountry(countryId));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ClassificationResponse> createClassification(
             @PathVariable UUID countryId,
             @Valid @RequestBody CreateClassificationRequest request) throws ResourceNotFoundException {
@@ -49,7 +49,7 @@ public class ClassificationController {
     }
 
     @PatchMapping("/{classificationId}")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ClassificationResponse> updateClassification(
             @PathVariable UUID countryId,
             @PathVariable UUID classificationId,
@@ -58,7 +58,7 @@ public class ClassificationController {
     }
 
     @PatchMapping("/{classificationId}/toggle")
-    @PreAuthorize("hasAnyRole('CINEMA_ADMIN', 'SYSTEM_ADMIN')")
+    @PreAuthorize("hasRole('SYSTEM_ADMIN')")
     public ResponseEntity<ClassificationResponse> toggleClassification(
             @PathVariable UUID countryId,
             @PathVariable UUID classificationId) throws ResourceNotFoundException {
