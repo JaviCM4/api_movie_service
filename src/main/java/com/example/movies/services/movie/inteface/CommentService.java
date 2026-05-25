@@ -3,6 +3,7 @@ package com.example.movies.services.movie.inteface;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
+import com.example.movies.dtos.movie.response.UserMovieCommentResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 
@@ -18,4 +19,6 @@ public interface CommentService {
     void deleteComment(UUID commentId, UUID userId) throws ResourceNotFoundException, ConflictException;
 
     List<CommentResponse> findCommentsByMovie(UUID movieId) throws ResourceNotFoundException;
+
+    List<UserMovieCommentResponse> findCommentsByUser(UUID userId);
 }

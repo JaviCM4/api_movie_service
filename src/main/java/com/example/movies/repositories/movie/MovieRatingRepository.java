@@ -18,4 +18,7 @@ public interface MovieRatingRepository extends JpaRepository<MovieRating, UUID> 
 
     @Query("SELECT AVG(r.score) FROM MovieRating r WHERE r.movie.id = :movieId")
     Double findAverageScoreByMovie_Id(UUID movieId);
+
+    List<MovieRating> findByUserIdOrderByCreatedAtDesc(UUID userId);
 }
+

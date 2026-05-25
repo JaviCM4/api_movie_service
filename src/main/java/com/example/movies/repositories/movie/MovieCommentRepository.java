@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface MovieCommentRepository extends JpaRepository<MovieComment, UUID> {
 
     List<MovieComment> findByMovie_IdOrderByCreatedAtDesc(UUID movieId);
+
+    List<MovieComment> findByUserIdOrderByCreatedAtDesc(UUID userId);
 }

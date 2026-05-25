@@ -3,6 +3,7 @@ package com.example.movies.controllers;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
+import com.example.movies.dtos.movie.response.UserMovieCommentResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.services.movie.inteface.CommentService;
@@ -65,5 +66,14 @@ public class CommentController {
         UUID userId = UUID.fromString(jwt.getSubject());
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/v1/comments/user")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<List<UserMovieCommentResponse>> getMyComments(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(commentService.findCommentsByUser(userId));
     }
 }

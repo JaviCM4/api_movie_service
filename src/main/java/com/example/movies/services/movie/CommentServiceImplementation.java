@@ -5,12 +5,14 @@ import com.example.movies.client.users.UserClient;
 import com.example.movies.dtos.movie.request.CreateCommentRequest;
 import com.example.movies.dtos.movie.request.UpdateCommentRequest;
 import com.example.movies.dtos.movie.response.CommentResponse;
+import com.example.movies.dtos.movie.response.UserMovieCommentResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.movie.Movie;
 import com.example.movies.models.movie.MovieComment;
 import com.example.movies.repositories.movie.MovieCommentRepository;
 import com.example.movies.repositories.movie.MovieRepository;
+import com.example.movies.repositories.movie.PosterRepository;
 import com.example.movies.services.movie.inteface.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,14 +28,17 @@ public class CommentServiceImplementation implements CommentService {
     private final MovieRepository movieRepository;
     private final TicketsClient ticketsClient;
     private final UserClient userClient;
+    private final PosterRepository posterRepository;
 
     @Autowired
     public CommentServiceImplementation(MovieCommentRepository commentRepository, MovieRepository movieRepository,
-                                        TicketsClient ticketsClient, UserClient userClient) {
+                                        TicketsClient ticketsClient, UserClient userClient,
+                                        PosterRepository posterRepository) {
         this.commentRepository = commentRepository;
         this.movieRepository = movieRepository;
         this.ticketsClient = ticketsClient;
         this.userClient = userClient;
+        this.posterRepository = posterRepository;
     }
 
     @Override
@@ -98,6 +103,21 @@ public class CommentServiceImplementation implements CommentService {
         return commentRepository.findByMovie_IdOrderByCreatedAtDesc(movieId)
                 .stream()
                 .map(comment -> CommentResponse.from(comment, userClient.getUserName(comment.getUserId())))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserMovieCommentResponse> findCommentsByUser(UUID userId) {
+        return commentRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(comment -> {
+                    String posterUrl = posterRepository
+                            .findByMovie_IdAndIsMain(comment.getMovie().getId(), true)
+                            .map(p -> p.getUrlImage())
+                            .orElse(null);
+                    return UserMovieCommentResponse.from(comment, posterUrl);
+                })
                 .toList();
     }
 }

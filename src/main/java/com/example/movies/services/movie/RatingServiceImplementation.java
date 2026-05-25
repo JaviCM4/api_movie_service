@@ -5,12 +5,14 @@ import com.example.movies.dtos.movie.request.CreateRatingRequest;
 import com.example.movies.dtos.movie.request.UpdateRatingRequest;
 import com.example.movies.dtos.movie.response.RatingResponse;
 import com.example.movies.dtos.movie.response.RatingSummaryResponse;
+import com.example.movies.dtos.movie.response.UserMovieRatingResponse;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import com.example.movies.models.movie.Movie;
 import com.example.movies.models.movie.MovieRating;
 import com.example.movies.repositories.movie.MovieRatingRepository;
 import com.example.movies.repositories.movie.MovieRepository;
+import com.example.movies.repositories.movie.PosterRepository;
 import com.example.movies.services.movie.inteface.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,13 +27,15 @@ public class RatingServiceImplementation implements RatingService {
     private final MovieRatingRepository ratingRepository;
     private final MovieRepository movieRepository;
     private final UserClient userClient;
+    private final PosterRepository posterRepository;
 
     @Autowired
     public RatingServiceImplementation(MovieRatingRepository ratingRepository, MovieRepository movieRepository,
-                                       UserClient userClient) {
+                                       UserClient userClient, PosterRepository posterRepository) {
         this.ratingRepository = ratingRepository;
         this.movieRepository = movieRepository;
         this.userClient = userClient;
+        this.posterRepository = posterRepository;
     }
 
     @Override
@@ -90,5 +94,20 @@ public class RatingServiceImplementation implements RatingService {
                 .toList();
         Double average = ratingRepository.findAverageScoreByMovie_Id(movieId);
         return new RatingSummaryResponse(ratings, average);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserMovieRatingResponse> findRatingsByUser(UUID userId) {
+        return ratingRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(rating -> {
+                    String posterUrl = posterRepository
+                            .findByMovie_IdAndIsMain(rating.getMovie().getId(), true)
+                            .map(p -> p.getUrlImage())
+                            .orElse(null);
+                    return UserMovieRatingResponse.from(rating, posterUrl);
+                })
+                .toList();
     }
 }
