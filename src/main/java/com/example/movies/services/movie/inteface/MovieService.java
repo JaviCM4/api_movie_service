@@ -3,6 +3,7 @@ package com.example.movies.services.movie.inteface;
 import com.example.movies.dtos.movie.request.CreateMovieRequest;
 import com.example.movies.dtos.movie.request.UpdateMovieRequest;
 import com.example.movies.dtos.movie.response.MovieAdminResponse;
+import com.example.movies.dtos.movie.response.MovieBriefResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -24,4 +25,6 @@ public interface MovieService {
     MovieDetailResponse findMovieById(UUID movieId, UUID countryId) throws ResourceNotFoundException;
 
     MovieAdminResponse findMovieAdminById(UUID movieId) throws ResourceNotFoundException;
+
+    List<MovieBriefResponse> findMoviesBrief(List<UUID> movieIds);
 }

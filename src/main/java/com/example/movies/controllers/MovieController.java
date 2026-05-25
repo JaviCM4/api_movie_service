@@ -3,6 +3,7 @@ package com.example.movies.controllers;
 import com.example.movies.dtos.movie.request.CreateMovieRequest;
 import com.example.movies.dtos.movie.request.UpdateMovieRequest;
 import com.example.movies.dtos.movie.response.MovieAdminResponse;
+import com.example.movies.dtos.movie.response.MovieBriefResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.exceptions.ConflictException;
@@ -66,5 +67,10 @@ public class MovieController {
             throws ResourceNotFoundException {
         movieService.updateMovie(movieId, request);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/brief")
+    public ResponseEntity<List<MovieBriefResponse>> getMoviesBrief(@RequestParam List<UUID> ids) {
+        return ResponseEntity.ok(movieService.findMoviesBrief(ids));
     }
 }

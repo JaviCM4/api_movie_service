@@ -3,6 +3,7 @@ package com.example.movies.exceptionhandler;
 import com.example.movies.exceptions.ConflictException;
 import com.example.movies.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -37,7 +38,10 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public String handleGeneric(Exception ex) {
+    public String handleGeneric(Exception ex) throws Exception {
+        if (ex instanceof AccessDeniedException) {
+            throw ex;
+        }
         return ex.getMessage();
     }
 }

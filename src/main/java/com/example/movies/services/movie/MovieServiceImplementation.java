@@ -2,6 +2,7 @@ package com.example.movies.services.movie;
 
 import com.example.movies.dtos.movie.request.*;
 import com.example.movies.dtos.movie.response.MovieAdminResponse;
+import com.example.movies.dtos.movie.response.MovieBriefResponse;
 import com.example.movies.dtos.movie.response.MovieDetailResponse;
 import com.example.movies.dtos.movie.response.MovieSummaryResponse;
 import com.example.movies.events.CreatedMovieEvent;
@@ -193,6 +194,25 @@ public class MovieServiceImplementation implements MovieService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new ResourceNotFoundException("Película no encontrada con id: " + movieId));
         return MovieAdminResponse.from(movie);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MovieBriefResponse> findMoviesBrief(List<UUID> movieIds) {
+        if (movieIds == null || movieIds.isEmpty()) return List.of();
+        List<Movie> movies = movieRepository.findAllById(movieIds);
+        List<Poster> posters = posterRepository.findByMovie_IdIn(movieIds);
+        List<MovieCountryInfo> classifs = movieCountryInfoRepository.findActiveByMovieIdIn(movieIds);
+        Map<UUID, List<Poster>> postersByMovieId = posters.stream()
+                .collect(Collectors.groupingBy(p -> p.getMovie().getId()));
+        Map<UUID, List<MovieCountryInfo>> classifsByMovieId = classifs.stream()
+                .collect(Collectors.groupingBy(mci -> mci.getMovie().getId()));
+        return movies.stream()
+                .map(m -> MovieBriefResponse.from(
+                        m,
+                        postersByMovieId.getOrDefault(m.getId(), List.of()),
+                        classifsByMovieId.getOrDefault(m.getId(), List.of())))
+                .toList();
     }
 
     private List<Classification> resolveClassificationsWithCountry(List<UUID> ids)

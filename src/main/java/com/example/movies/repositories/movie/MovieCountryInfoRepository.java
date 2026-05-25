@@ -44,4 +44,12 @@ public interface MovieCountryInfoRepository extends JpaRepository<MovieCountryIn
     List<MovieCountryInfo> findActiveByCountryAndMovieIdIn(
             @Param("movieIds") List<UUID> movieIds,
             @Param("countryId") UUID countryId);
+
+    @Query("""
+        SELECT mci FROM MovieCountryInfo mci
+        JOIN FETCH mci.classification c
+        WHERE mci.movie.id IN :movieIds
+          AND mci.isActive = true
+    """)
+    List<MovieCountryInfo> findActiveByMovieIdIn(@Param("movieIds") List<UUID> movieIds);
 }
