@@ -1,3 +1,13 @@
+-- Reemplaza classification_movie: la clasificación varía por país
+-- y aquí también vive el is_active por país
+CREATE TABLE movie_country_info (
+    id                UUID      PRIMARY KEY DEFAULT uuid_generate_v4(),
+    classification_id UUID      NOT NULL REFERENCES classification(id),
+    movie_id          UUID      NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
+    is_active         BOOLEAN   NOT NULL DEFAULT TRUE,
+    UNIQUE (movie_id, classification_id)
+);
+
 CREATE TABLE poster (
     id         UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
     movie_id   UUID         NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
@@ -12,7 +22,7 @@ CREATE TABLE movie_categories (
     UNIQUE (movie_id, category_id)
 );
 
-CREATE TABLE cast (
+CREATE TABLE cast_movie (
     id             UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
     movie_id       UUID         NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
     actor_id       UUID         NOT NULL REFERENCES actor(id),

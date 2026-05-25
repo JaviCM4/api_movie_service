@@ -1,0 +1,23 @@
+package com.example.movies.repositories.movie;
+
+import com.example.movies.models.movie.MovieCategory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface MovieCategoryRepository extends JpaRepository<MovieCategory, UUID> {
+
+    List<MovieCategory> findByMovie_Id(UUID movieId);
+
+    long countByMovie_Id(UUID movieId);
+
+    boolean existsByMovie_IdAndCategory_Id(UUID movieId, UUID categoryId);
+
+    @Query("SELECT mc FROM MovieCategory mc JOIN FETCH mc.category WHERE mc.movie.id IN :movieIds")
+    List<MovieCategory> findWithCategoryByMovieIdIn(@Param("movieIds") List<UUID> movieIds);
+}
