@@ -6,7 +6,6 @@ pipeline {
         PATH = "${JAVA_HOME}/bin:${env.PATH}"
         IMAGE_NAME = 'microservice-movies'
         DEPLOY_DIR = '/opt/microservices/movies-service'
-        SERVER_SERVLET_CONTEXT_PATH=/movies
     }
 
     stages {
