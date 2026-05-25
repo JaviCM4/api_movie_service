@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh 'java -version'
                 sh 'mvn -version'
-                sh 'mvn test -B -Dtest=!MoviesServiceApplicationTests'
+                sh 'mvn test -B'
             }
             post {
                 always {
@@ -36,7 +36,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    # Crear el directorio si no existe
+                    # Crear el directorio si no existe (Buena práctica)
                     mkdir -p $DEPLOY_DIR
 
                     # Copiar archivos de configuracion al servidor
@@ -45,6 +45,7 @@ pipeline {
 
                     # Levantar/actualizar contenedores
                     cd $DEPLOY_DIR
+                    # 2. Actualizamos el nombre del contenedor principal aquí:
                     docker compose up -d --no-deps movies-service
                     docker compose up -d --no-deps nginx
 
@@ -57,6 +58,6 @@ pipeline {
 
     post {
         failure { echo 'Pipeline del movies-service falló' }
-        success { echo 'Movies-service desplegado exitosamente' }
+        success { echo 'movies-service desplegado exitosamente' }
     }
 }
